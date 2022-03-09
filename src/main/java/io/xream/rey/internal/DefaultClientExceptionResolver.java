@@ -16,7 +16,6 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.internal.util.ExceptionUtil;
 import io.xream.internal.util.JsonX;
 import io.xream.rey.api.CircuitbreakerExceptionHandler;
 import io.xream.rey.api.ClientExceptionResolver;
@@ -70,9 +69,9 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             String[] arr = str.split(";");
             final String message = arr[0];
             if (t instanceof ConnectException) {
-                throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, -1 ,message, ExceptionUtil.getStack(e),null,null,null);
+                throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, -1 ,message, ReyExceptionUtil.getStack(e),null,null,null);
             }else if (t instanceof SocketTimeoutException) {
-                throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, -2 ,message,ExceptionUtil.getStack(e),null,null,null);
+                throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, -2 ,message,ReyExceptionUtil.getStack(e),null,null,null);
             }
         }else if (e instanceof HttpClientErrorException){
             HttpClientErrorException ee = (HttpClientErrorException)e;
@@ -81,7 +80,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             Map<String,Object> map = JsonX.toMap(str);
             String message = MapUtils.getString(map,"error");
             String path = MapUtils.getString(map, "path");
-            String stack = ExceptionUtil.getStack(e);
+            String stack = ReyExceptionUtil.getStack(e);
             throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, ee.getStatusCode().value() ,message,stack,null,path,null);
         }else if (e instanceof HttpServerErrorException) {
             HttpServerErrorException hse = (HttpServerErrorException)e;
@@ -91,7 +90,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             Map<String,Object> map = JsonX.toMap(str);
             String stack = MapUtils.getString(map,"stack");
             if (stack == null) {
-                stack = ExceptionUtil.getStack(e);
+                stack = ReyExceptionUtil.getStack(e);
             }
             String message = MapUtils.getString(map,"error");
             String path = MapUtils.getString(map,"path");
@@ -103,7 +102,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
                     MapUtils.getString(map,"traceId")
             );
         }else if (e instanceof IllegalArgumentException) {
-            throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, 400, e.getMessage(), ExceptionUtil.getStack(e),null,null,null);
+            throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, 400, e.getMessage(), ReyExceptionUtil.getStack(e),null,null,null);
         }
 
         throw new ReyRuntimeException(e);

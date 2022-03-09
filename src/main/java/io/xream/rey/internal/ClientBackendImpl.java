@@ -16,7 +16,6 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.internal.util.ExceptionUtil;
 import io.xream.internal.util.JsonX;
 import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.BackendService;
@@ -157,7 +156,7 @@ public class ClientBackendImpl implements ClientBackend {
                     }catch (Throwable t) {
                         if (t instanceof ReyInternalException)
                             throw rie;
-                        rie.setFallback(ExceptionUtil.getMessage(t));
+                        rie.setFallback(ReyExceptionUtil.getMessage(t));
                         throw rie;
                     }
                 }

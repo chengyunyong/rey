@@ -17,10 +17,10 @@
 package io.xream.rey.resilience4j;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.CircuitbreakerExceptionHandler;
 import io.xream.rey.api.ReyHttpStatus;
 import io.xream.rey.exception.ReyInternalException;
+import io.xream.rey.internal.ReyExceptionUtil;
 
 /**
  * @author Sim
@@ -29,7 +29,7 @@ public class R4JCircuitbreakerExceptionHandler implements CircuitbreakerExceptio
 
     public void handle(Throwable e) {
         if (e instanceof CallNotPermittedException) {//503
-            throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, 503, e.getMessage(), ExceptionUtil.getStack(e), null, null, null);
+            throw ReyInternalException.create(ReyHttpStatus.TO_CLIENT, 503, e.getMessage(), ReyExceptionUtil.getStack(e), null, null, null);
         }
     }
 }

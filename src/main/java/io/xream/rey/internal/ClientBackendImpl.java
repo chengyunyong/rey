@@ -22,6 +22,7 @@ import io.xream.rey.api.BackendService;
 import io.xream.rey.api.ClientTemplate;
 import io.xream.rey.api.GroupRouter;
 import io.xream.rey.api.ReyTemplate;
+import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.ResponseString;
 import org.springframework.util.MultiValueMap;
@@ -42,6 +43,8 @@ public class ClientBackendImpl implements ClientBackend {
 
     private ClientTemplate clientTemplate;
 
+    private ReyConfigurable reyConfigurable;
+
     public ClientBackendImpl(ClientTemplate wrapper) {
         this.clientTemplate = wrapper;
     }
@@ -57,6 +60,10 @@ public class ClientBackendImpl implements ClientBackend {
 
     public void setReyTemplate( ReyTemplate reyTemplate) {
         this.reyTemplate = reyTemplate;
+    }
+
+    public void setReyConfigurable(ReyConfigurable reyConfigurable) {
+        this.reyConfigurable = reyConfigurable;
     }
 
     private Pattern pattern = Pattern.compile("\\{[\\w]*\\}");
@@ -126,7 +133,7 @@ public class ClientBackendImpl implements ClientBackend {
 
         Object result = null;
         try {
-            if (backendDecoration == null || reyTemplate == null) {
+            if (backendDecoration == null || ! this.reyConfigurable.isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
                 try {
                     result = backendService.handle();
                 }catch (Exception e) {

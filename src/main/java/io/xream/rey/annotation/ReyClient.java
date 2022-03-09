@@ -35,11 +35,7 @@ public @interface ReyClient {
      */
     String value() default  "";
 
-    /**
-     * "" or configed backend name in application.properties
-     */
-    String circuitBreaker() default " ";
-
+    String config() default "default";
     /**
      * true | false
      */

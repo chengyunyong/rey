@@ -1,47 +1,27 @@
-# x7
-   [http://x7.xream.io](http://x7.xream.io) 
+# rey
+   [http://rey.xream.io](http://rey.xream.io) 
    
-[![license](https://img.shields.io/github/license/x-ream/x7.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
-[![maven](https://img.shields.io/maven-central/v/io.xream.x7/x7-parent.svg)](https://search.maven.org/search?q=io.xream)
-
-   x7/x7-repo [DETAILED README](https://github.com/x-ream/x7/blob/master/x7-repo/README.md)
+[![license](https://img.shields.io/github/license/x-ream/rey.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+[![maven](https://img.shields.io/maven-central/v/io.xream.rey/rey-parent.svg)](https://search.maven.org/search?q=io.xream)
 
 
-### GLIMPSE
-       
-       x7-repo     (wrapped Spring JdbcTemplate, Distribution Lock, Cache and so on....)
-          @EnableX7Repository           @Repository       and { interface FooRepository extends BaseRepository<Foo> }
-          @EnableX7L3Caching            @CacheableL3
-          @EnableDistributionLock       @Lock             or  
-             { DistributionLock.by(key).lock(task) }
-             
-          
-       x7-reyc
-          /reyc     (wrapped Resilience4J)
-             @EnableReySupport                            and { private ReyTemplate reyTemplate }
+### GLIMPSE 
+
+       rey
+             @EnableReySupport          and { private ReyTemplate reyTemplate }
              @EnableReyClient           @ReyClient
-           
-          /reliable     (mq transaction api)
-             @EnableReliabilityManagement     
-                 @ReliableProducer
-                 @ReliableOnConsumed
+             @EnableFallback            @Fallback
         
-       x7-spring-boot-starter
+       rey-spring-boot-starter
        
-       x7-seata-spring-boot-starter
-
-
-###  如何使用第三方id生成器
-       1. @SpringBootApplication(exclude = IdGeneratorAutoConfiguration.class)
-       2. 参照x7-id-generator工程， 新建工程，实现自定义的IdGeneratorService, 代码如下:
-            public interface MyIdGeneratorService extends IdGeneratorProxy       
+       rey-seata-spring-boot-starter
+    
        
-### NOTES
-       1. A method, coded with io.xream/reliable or seata, maybe we can not use:
-            @Lock  or 
-            { DistributionLock.by(key).lock(task) }
-            
-       2. If deploy many copies of a set of microservices, how to route to the service?
+### NOTES   
+       1. @Fallback not dependent on remote call, can add fallback on any class
+       2. @ReyClient, call remote service, if get exception, will respond exception message with
+           status 222, while actual status in message body
+       3. If deploy many copies of a set of microservices, how to route to the service?
             
             public class FooRouter implements GroupRouter{
                  public String replaceHolder(){

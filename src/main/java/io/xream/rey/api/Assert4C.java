@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * opy from org.springframework.util.Assert
+ * copy from org.springframework.util.Assert
  * to assert the client request parameter
  * @author Sim
  */

@@ -27,7 +27,6 @@ import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.BackendService;
 import io.xream.rey.api.ReyTemplate;
 import io.xream.rey.exception.ReyInternalException;
-import io.xream.rey.exception.ReyRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,13 +53,13 @@ public class R4JTemplate<T> implements ReyTemplate<T> {
     }
 
     @Override
-    public T support(String configName, boolean isRetry, BackendService<T> backendService) throws ReyInternalException{
+    public T support(String configName, boolean isRetry, BackendService<T> backendService) throws ReyInternalException {
 
         return support(configName, configName, isRetry, backendService);
     }
 
     @Override
-    public T support(String serviceName, String backendName, boolean isRetry, BackendService<T> backendService) throws ReyInternalException{
+    public T support(String serviceName, String backendName, boolean isRetry, BackendService<T> backendService) throws ReyInternalException {
 
         if (StringUtil.isNullOrEmpty(backendName)) {
             backendName = "";
@@ -93,21 +92,20 @@ public class R4JTemplate<T> implements ReyTemplate<T> {
         }
 
         final String tag = "Backend(" + serviceName + ")";
-        try {
-            return Try.ofSupplier(decoratedSupplier)
-                    .recover(e -> {
-                                logger.error(tag + ": " + e.getMessage());
-                                return handleException(e);
-                            }
-                    ).get();
-        }catch (ReyRuntimeException re) {
-            throw new ReyInternalException(re.getCause());
-        }
+
+        return Try.ofSupplier(decoratedSupplier)
+                .recover(e -> {
+                            logger.error(tag + ": " + e.getMessage());
+                            return handleException(e);
+                        }
+                ).get();
 
     }
 
     private T handleException(Throwable e) {
-        throw new ReyRuntimeException(e);
+        if (e instanceof ReyInternalException)
+            throw (ReyInternalException) e;
+        throw new ReyInternalException(e);
     }
 
 }

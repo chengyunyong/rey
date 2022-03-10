@@ -21,7 +21,8 @@ import io.xream.internal.util.LoggerProxy;
 import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.ClientHeaderInterceptor;
 import io.xream.rey.api.ClientTemplate;
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.exception.ReyInternalException;
+import io.xream.rey.proto.ReyResponse;
 import org.springframework.http.*;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,36 +44,36 @@ public class DefaultClientTemplate implements ClientTemplate {
 
     @Override
     public void wrap(Object impl) {
-        this.restTemplate = (RestTemplate)impl;
+        this.restTemplate = (RestTemplate) impl;
     }
 
     @Override
-    public void headerInterceptor(ClientHeaderInterceptor interceptor){
+    public void headerInterceptor(ClientHeaderInterceptor interceptor) {
         this.clientHeaderInterceptorList.add(interceptor);
     }
 
     @Override
-    public ResponseString exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod requestMethod) {
-        ResponseString result = null;
+    public ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod requestMethod) {
+        ReyResponse result = null;
         switch (requestMethod) {
             case GET:
-                result = this.execute(clz,url,request,headers,HttpMethod.GET);
+                result = this.execute(clz, url, request, headers, HttpMethod.GET);
                 break;
             case PUT:
-                result = this.execute(clz,url,request,headers,HttpMethod.PUT);
+                result = this.execute(clz, url, request, headers, HttpMethod.PUT);
                 break;
             case DELETE:
-                result = this.execute(clz,url,request,headers,HttpMethod.DELETE);
+                result = this.execute(clz, url, request, headers, HttpMethod.DELETE);
                 break;
             default:
-                result = this.execute(clz,url,request,headers,HttpMethod.POST);
+                result = this.execute(clz, url, request, headers, HttpMethod.POST);
         }
 
         return result;
     }
 
 
-    private ResponseString execute(Class clz, String url, Object request, MultiValueMap headerMap, HttpMethod method) {
+    private ReyResponse execute(Class clz, String url, Object request, MultiValueMap headerMap, HttpMethod method) {
 
         HttpHeaders headers = new HttpHeaders();
         if (headerMap != null) {
@@ -85,35 +86,41 @@ public class DefaultClientTemplate implements ClientTemplate {
 
         // check content type
         if (headers.getContentType() == null
-        && (
+                && (
                 method == HttpMethod.POST
-                || method == HttpMethod.PUT
-                || method == HttpMethod.DELETE
-                || method == HttpMethod.PATCH
-                )) {
+                        || method == HttpMethod.PUT
+                        || method == HttpMethod.DELETE
+                        || method == HttpMethod.PATCH
+        )) {
             headers.setContentType(MediaType.APPLICATION_JSON);
         }
 
         StringBuilder headerStr = new StringBuilder();
 
         headers.entrySet().stream().forEach(
-                header ->  headerStr.append(" -H ").append(header.getKey()).append(":").append(header.getValue().stream().collect(Collectors.joining()))
+                header -> headerStr.append(" -H ").append(header.getKey()).append(":").append(header.getValue().stream().collect(Collectors.joining()))
         );
 
         String json = request == null ? "" : JsonX.toJson(request);
 
-        LoggerProxy.info(clz, "-X " + method.name() + "  " + url + headerStr + (StringUtil.isNotNull(json) ? (" -d '" + json + "'"):""));
+        LoggerProxy.info(clz, "-X " + method.name() + "  " + url + headerStr + (StringUtil.isNotNull(json) ? (" -d '" + json + "'") : ""));
 
         if (this.restTemplate == null)
             throw new NullPointerException(RestTemplate.class.getName());
 
-        ResponseEntity<String> re = restTemplate.exchange(url, method, new HttpEntity<>(json, headers), String.class);
+        try {
+            ResponseEntity<String> re = restTemplate.exchange(url, method, new HttpEntity<>(json, headers), String.class);
 
-        ResponseString responseString = new ResponseString();
-        responseString.setBody(re.getBody());
-        responseString.setStatus(re.getStatusCodeValue());
-        return responseString;
-
+            ReyResponse reyResponse = new ReyResponse();
+            reyResponse.setBody(re.getBody());
+            reyResponse.setStatus(re.getStatusCodeValue());
+            reyResponse.setUri(url);
+            return reyResponse;
+        } catch (Throwable throwable) {
+            ReyInternalException rie = new ReyInternalException(throwable);
+            rie.setUri(url);
+            throw rie;
+        }
     }
 
 

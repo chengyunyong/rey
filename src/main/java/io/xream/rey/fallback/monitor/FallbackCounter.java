@@ -46,7 +46,7 @@ public class FallbackCounter {
                     .baseUnit("seconds")
                     .tag("class",className)
                     .tag("method",methodName)
-                    .tag("uri",uri)
+                    .tag("uri",uri == null ? "": uri)
                     .tag("exception",exceptionName)
                     .description("Rey fallback count base on seconds")
                     .register(registry);

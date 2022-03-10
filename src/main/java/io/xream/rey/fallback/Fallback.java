@@ -49,7 +49,7 @@ public interface Fallback {
             throw ignoredException;
         }
         try {
-            String uri = ignoredException instanceof ReyInternalException ? ((ReyInternalException) ignoredException).getPath() :"";
+            String uri = ignoredException instanceof ReyInternalException ? ((ReyInternalException) ignoredException).uriOfLast() :"";
             String exceptionName = ignoredException.getClass().getSimpleName();
             FallbackCounter.increment(parsed.getTargetClass().getSimpleName(),parsed.getMethod().getName(),uri,exceptionName);
             if (parsed.getMethod().getReturnType() == void.class) {

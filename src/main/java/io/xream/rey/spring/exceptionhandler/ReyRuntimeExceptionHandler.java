@@ -43,7 +43,7 @@ public class ReyRuntimeExceptionHandler {
             ReyRuntimeException.class
     })
     @ResponseBody
-    public ResponseEntity<RemoteExceptionProto> handleDefaultException(RuntimeException e){
+    public ResponseEntity<RemoteExceptionProto> handleReyRuntimeException(RuntimeException e){
 
         logger.error(ReyExceptionUtil.getMessage(e));
 
@@ -53,21 +53,20 @@ public class ReyRuntimeExceptionHandler {
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId()+ ":" + span.context().toSpanId();
 
-        String stack = ReyExceptionUtil.getStack(e);
+        String stack = "("+e.getClass().getName() + ") " + ReyExceptionUtil.getStack(e);
         int status = 500;
         String message = null;
 
         if (e instanceof MismatchedReturnTypeException){
-            message = "("+MismatchedReturnTypeException.class.getName() + ") " + e.getMessage();
+            message = e.getMessage();
         }else if (e instanceof ReyRuntimeException){
-            message = "("+ ReyRuntimeException.class.getName() + ") " + e.getMessage();
+            message = e.getMessage();
         } else {
             message = e.getMessage();
         }
         RemoteExceptionProto proto = new RemoteExceptionProto(status,message,stack,traceId);
-        return ResponseEntity.status(status == 400 ? 400 : 500).body(
-                proto
-        );
+
+        return ResponseEntity.status(status == 400 ? 400 : 500).body(proto);
     }
 
 

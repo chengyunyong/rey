@@ -23,8 +23,8 @@ import io.xream.rey.exception.ReyInternalException;
  */
 public interface ClientExceptionResolver {
 
-    void convertNot200ToException(int status, String response) throws ReyInternalException;
-    void handleException(Throwable e) throws ReyInternalException;
+    void convertNot200ToException(int status, String uri, String response) throws ReyInternalException;
+    void handleException(ReyInternalException rie) throws ReyInternalException;
     FallbackHandler fallbackHandler();
     CircuitbreakerExceptionHandler circuitbreakerExceptionHandler();
 

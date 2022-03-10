@@ -17,9 +17,9 @@
 package io.xream.rey.proto;
 
 import io.xream.internal.util.JsonX;
-import io.xream.internal.util.StringUtil;
-import io.xream.rey.api.ReyHttpStatus;
-import io.xream.rey.exception.ReyInternalException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Sim
@@ -27,33 +27,20 @@ import io.xream.rey.exception.ReyInternalException;
 public class RemoteExceptionProto {
 
     private int status;
-    private String traceId;
     private String error;
-    private String stack;
-    private String path;
-    private String fallback;
+    private String errorOnFallback;
+    private List<ExceptionTrace> exceptionTraces = new ArrayList<>();
 
     public RemoteExceptionProto(){
-    }
-
-    public RemoteExceptionProto(ReyInternalException exception, String traceId){
-        this.status = exception.getStatus();
-        this.error = exception.getMessage();
-        this.stack = exception.getStack();
-        this.traceId = StringUtil.isNullOrEmpty(exception.getTraceId()) ? traceId : exception.getTraceId();
-        this.fallback = exception.getFallback();
-        this.path = exception.getPath();
     }
 
     public RemoteExceptionProto(int status, String error, String statck, String traceId){
         this.status = status;
         this.error = error;
-        this.stack = statck;
-        this.traceId = traceId;
-    }
-
-    public ReyInternalException create(ReyHttpStatus reyHttpStatus) {
-        return ReyInternalException.create(reyHttpStatus,this.status,this.error,this.stack,this.fallback,this.path, this.traceId);
+        ExceptionTrace exceptionTrace = new ExceptionTrace();
+        exceptionTrace.setTraceId(traceId);
+        exceptionTrace.setStack(statck);
+        exceptionTraces.add(exceptionTrace);
     }
 
     public int getStatus() {
@@ -64,13 +51,6 @@ public class RemoteExceptionProto {
         this.status = status;
     }
 
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
 
     public String getError() {
         return error;
@@ -80,36 +60,75 @@ public class RemoteExceptionProto {
         this.error = error;
     }
 
-    public String getStack() {
-        return stack;
+
+    public String getErrorOnFallback() {
+        return errorOnFallback;
     }
 
-    public void setStack(String stack) {
-        this.stack = stack;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getFallback() {
-        return fallback;
-    }
-
-    public void setFallback(String fallback) {
-        this.fallback = fallback;
+    public void setErrorOnFallback(String errorOnFallback) {
+        this.errorOnFallback = errorOnFallback;
     }
 
     public String toJson(){
         return JsonX.toJson(this);
     }
 
+    public List<ExceptionTrace> getExceptionTraces() {
+        return exceptionTraces;
+    }
+
+    public void add(ExceptionTrace exceptionTrace) {
+        exceptionTraces.add(exceptionTrace);
+    }
+
+    public void last(String traceId, String stack) {
+        ExceptionTrace exceptionTrace = lastTrace();
+        if (exceptionTrace == null){
+            exceptionTrace = new ExceptionTrace();
+            exceptionTraces.add(exceptionTrace);
+        }
+        exceptionTrace.setTraceId(traceId);
+        exceptionTrace.setStack(stack);
+    }
+
+    public ExceptionTrace lastTrace(){
+        if (exceptionTraces.isEmpty())
+            return null;
+        return exceptionTraces.get(exceptionTraces.size() - 1);
+    }
+
     @Override
     public String toString() {
         return toJson();
+    }
+
+    public static class ExceptionTrace {
+        private String traceId;
+        private String stack;
+        private String uri;
+
+        public String getTraceId() {
+            return traceId;
+        }
+
+        public void setTraceId(String traceId) {
+            this.traceId = traceId;
+        }
+
+        public String getStack() {
+            return stack;
+        }
+
+        public void setStack(String stack) {
+            this.stack = stack;
+        }
+
+        public String getUri() {
+            return uri;
+        }
+
+        public void setUri(String uri) {
+            this.uri = uri;
+        }
     }
 }

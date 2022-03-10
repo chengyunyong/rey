@@ -21,7 +21,7 @@ import io.xream.rey.api.BackendService;
 import io.xream.rey.exception.MismatchedReturnTypeException;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.fallback.FallbacKey;
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.proto.ReyResponse;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -61,7 +61,7 @@ public class ClientBackendInvocationHandler implements InvocationHandler {
             BackendDecoration backendDecoration = clientBackendProxy.getBackendDecoration();
 
             if (backendDecoration.getConfigName() == null) {
-                ResponseString result = getBackend().handle(r,clzz);
+                ReyResponse result = getBackend().handle(r,clzz);
                 if (result == null)
                     return null;
                 return clientBackend.toObject(r.getReturnType(),r.getGeneType(),result.getBody());
@@ -69,9 +69,9 @@ public class ClientBackendInvocationHandler implements InvocationHandler {
 
             BackendDecoration cd = clientBackendProxy.getBackendDecoration();
 
-            Object result = clientBackend.service(cd, new BackendService<ResponseString>() {
+            Object result = clientBackend.service(cd, new BackendService<ReyResponse>() {
                 @Override
-                public ResponseString handle() {
+                public ReyResponse handle() {
                     return clientBackend.handle(r,clzz);
                 }
 
@@ -84,9 +84,9 @@ public class ClientBackendInvocationHandler implements InvocationHandler {
             if (result == null)
                 return null;
 
-            if (result instanceof ResponseString) {
-                ResponseString responseString = (ResponseString) result;
-                return clientBackend.toObject(r.getReturnType(), r.getGeneType(), responseString.getBody());
+            if (result instanceof ReyResponse) {
+                ReyResponse reyResponse = (ReyResponse) result;
+                return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
             }else if (result.getClass() == r.getReturnType()){
                 return result;
             }else {

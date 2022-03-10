@@ -44,7 +44,7 @@ public class IgnoreFallbackExceptionHandler {
             MethodArgumentConversionNotSupportedException.class,
     })
     @ResponseBody
-    public ResponseEntity<RemoteExceptionProto> handleDefaultException(RuntimeException e) {
+    public ResponseEntity<RemoteExceptionProto> handleIgnoreFallbackException(RuntimeException e) {
 
         logger.error(ReyExceptionUtil.getMessage(e));
 
@@ -58,14 +58,15 @@ public class IgnoreFallbackExceptionHandler {
         int status = 400;
         String message = e.getMessage();
 
-        if (!stack.startsWith("io.xream.rey.api")) {
+        if (e instanceof IllegalArgumentException && !stack.startsWith("io.xream.rey.api")) {
             status = 500;
         }
 
+        stack = "("+ e.getClass().getName() + ") " + stack;
+
         RemoteExceptionProto proto = new RemoteExceptionProto(status, message, stack, traceId);
-        return ResponseEntity.status(status == 400 ? 400 : 500).body(
-                proto
-        );
+
+        return ResponseEntity.status(status == 400 ? 400 : 500).body(proto);
     }
 
 

@@ -16,7 +16,7 @@
  */
 package io.xream.rey.api;
 
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.proto.ReyResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -27,5 +27,5 @@ public interface ClientTemplate {
 
     void wrap(Object impl);
     void headerInterceptor(ClientHeaderInterceptor interceptor);
-    ResponseString exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod httpMethod);
+    ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod httpMethod);
 }

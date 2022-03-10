@@ -18,6 +18,7 @@ package io.xream.rey.spring.exceptionhandler;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.ReyHttpStatus;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.RemoteExceptionProto;
@@ -41,15 +42,15 @@ public class ReyInternalExceptionHandler {
             ReyInternalException.class
     })
     @ResponseBody
-    public ResponseEntity<RemoteExceptionProto> handlerDemoteResourceAccessException(ReyInternalException exception) {
+    public ResponseEntity<RemoteExceptionProto> handleReyInternalException(ReyInternalException exception) {
 
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId() + ":" + span.context().toSpanId();
+        String stack = ExceptionUtil.getStack(exception);
+        RemoteExceptionProto proto = exception.getBody();
+        proto.last(traceId,stack);
 
-        RemoteExceptionProto proto = new RemoteExceptionProto(exception, traceId);
-        return ResponseEntity.status(ReyHttpStatus.TO_CLIENT.getStatus()).body(
-                proto
-        );
+        return ResponseEntity.status(ReyHttpStatus.TO_CLIENT.getStatus()).body(proto);
     }
 
 

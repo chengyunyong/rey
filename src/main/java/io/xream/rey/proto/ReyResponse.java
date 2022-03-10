@@ -19,10 +19,11 @@ package io.xream.rey.proto;
 /**
  * @author Sim
  */
-public class ResponseString {
+public class ReyResponse {
 
     private int status;
     private String body;
+    private String uri;
 
     public int getStatus() {
         return status;
@@ -38,5 +39,13 @@ public class ResponseString {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 }

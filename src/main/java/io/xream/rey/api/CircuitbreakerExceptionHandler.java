@@ -16,10 +16,12 @@
  */
 package io.xream.rey.api;
 
+import io.xream.rey.exception.ReyInternalException;
+
 /**
  * @author Sim
  */
 public interface CircuitbreakerExceptionHandler {
 
-    void handle(Throwable e);
+    void handle(ReyInternalException rie);
 }

@@ -17,60 +17,29 @@
 package io.xream.rey.exception;
 
 import io.xream.rey.api.ReyHttpStatus;
+import io.xream.rey.proto.RemoteExceptionProto;
+
+import java.util.List;
 
 /**
  * @author Sim
  */
 public class ReyInternalException extends RuntimeException {
 
-    private int status;
-    private String traceId;
-    private String stack;
-    private String fallback;
-    private String path;
-    public int httpStatus(){
-        return 0;
+    private String uri;
+
+    private RemoteExceptionProto body;
+
+
+    public int status(){
+        return this.body.getStatus();
     }
 
-    public int getStatus() {
-        return status;
+    public void add(RemoteExceptionProto.ExceptionTrace exceptionTrace) {
+        body.add(exceptionTrace);
     }
 
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
-
-    public String getStack() {
-        return stack;
-    }
-
-    public void setStack(String stack) {
-        this.stack = stack;
-    }
-
-    public String getFallback() {
-        return fallback;
-    }
-
-    public void setFallback(String fallback) {
-        this.fallback = fallback;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
+    public ReyInternalException() {}
 
     public ReyInternalException(Throwable e) {
         super(e);
@@ -81,68 +50,131 @@ public class ReyInternalException extends RuntimeException {
         super(message);
     }
 
-    public static ReyInternalException create(ReyHttpStatus reyHttpStatus, int status, String error,
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public RemoteExceptionProto getBody() {
+        return body;
+    }
+
+    protected void setBody(RemoteExceptionProto body) {
+        this.body = body;
+    }
+
+    protected void nextTraceToClient(String path) {
+        RemoteExceptionProto.ExceptionTrace next = new RemoteExceptionProto.ExceptionTrace();
+        next.setUri(path);
+        body.add(next);
+    }
+
+    public static ReyInternalException createToClient(String path, RemoteExceptionProto proto) {
+        ReyInternalException.ToClient exception = new ReyInternalException.ToClient();
+        exception.nextTraceToClient(path);
+        return exception;
+    }
+
+    public static ReyInternalException createToClient(int status, String error, String uri, List<RemoteExceptionProto.ExceptionTrace> traces) {
+
+        if (status == ReyHttpStatus.BAD_REQUEST.getStatus()) {
+            return new ReyInternalException.BadRequest(error,uri,traces);
+        }
+
+        return new ReyInternalException.ToClient(status,error,uri,traces);
+    }
+
+    public static ReyInternalException create(int status, String error,
                                               String stack,
                                               String fallback,
-                                              String path,
-                                              String traceId){
-        if (reyHttpStatus == ReyHttpStatus.INTERNAL_SERVER_ERROR){
-            return new InternalServerError(status,error,stack,fallback,path,traceId);
-        }else if (reyHttpStatus == ReyHttpStatus.BAD_REQUEST){
-            return new BadRequest(error,stack,fallback,path,traceId);
+                                              String path){
+
+        if (status == ReyHttpStatus.BAD_REQUEST.getStatus()){
+            return new BadRequest(error,stack,fallback,path);
         }else {
-            return new ToClient(status,error,stack,fallback,path,traceId);
+            return new ToClient(status,error,stack,fallback,path);
         }
+    }
+
+    public void setErrorOnFallback(String message) {
+        this.body.setErrorOnFallback(message);
+    }
+
+    public String uriOfLast() {
+        RemoteExceptionProto.ExceptionTrace exceptionTrace = this.body.lastTrace();
+        if (exceptionTrace == null)
+            return "";
+        return exceptionTrace.getUri();
     }
 
     public static final class BadRequest extends ReyInternalException {
 
-        private BadRequest(String message,String stack,String fallback,String path, String traceId) {
-            super(message);
-            super.setStatus(400);
-            super.setStack(stack);
-            super.setFallback(fallback);
-            super.setPath(path);
-            super.setTraceId(traceId);
+        private BadRequest(String error,String stack,String fallback,String path) {
+            super();
+            RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
+            exceptionTrace.setStack(stack);
+
+            RemoteExceptionProto proto = new RemoteExceptionProto();
+            proto.setStatus(400);
+            proto.setError(error);
+            proto.setErrorOnFallback(fallback);
+            proto.add(exceptionTrace);
+
+            super.setBody(proto);
         }
 
-        public int httpStatus(){
-            return ReyHttpStatus.BAD_REQUEST.getStatus();
+        public BadRequest(String error, String path, List<RemoteExceptionProto.ExceptionTrace> traces) {
+            super();
+
+            RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
+            exceptionTrace.setUri(path);
+
+            RemoteExceptionProto proto = new RemoteExceptionProto();
+            proto.setStatus(400);
+            proto.setError(error);
+            proto.getExceptionTraces().addAll(traces);
+            proto.add(exceptionTrace);
+
+            super.setBody(proto);
         }
 
     }
-
-    public static final class InternalServerError extends ReyInternalException {
-
-        private InternalServerError(int status,String message,String stack,String fallback,String path, String traceId) {
-            super(message);
-            super.setStatus(status);
-            super.setStack(stack);
-            super.setFallback(fallback);
-            super.setPath(path);
-            super.setTraceId(traceId);
-        }
-
-        public int httpStatus(){
-            return ReyHttpStatus.INTERNAL_SERVER_ERROR.getStatus();
-        }
-
-    }
-
 
     public static final class ToClient extends ReyInternalException {
 
-        private ToClient(int status, String message,String stack, String fallback,String path, String traceId) {
-            super(message);
-            super.setStatus(status);
-            super.setStack(stack);
-            super.setFallback(fallback);
-            super.setPath(path);
-            super.setTraceId(traceId);
+        private ToClient() {}
+
+        private ToClient(int status, String error,String stack, String fallback,String path) {
+            super();
+            RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
+            exceptionTrace.setStack(stack);
+            exceptionTrace.setUri(path);
+
+            RemoteExceptionProto proto = new RemoteExceptionProto();
+            proto.setStatus(status);
+            proto.setError(error);
+            proto.setErrorOnFallback(fallback);
+            proto.add(exceptionTrace);
+
+            super.setBody(proto);
         }
 
-        public int httpStatus(){
-            return ReyHttpStatus.TO_CLIENT.getStatus();
+        public ToClient(int status, String error, String path, List<RemoteExceptionProto.ExceptionTrace> traces) {
+            super();
+
+            RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
+            exceptionTrace.setUri(path);
+
+            RemoteExceptionProto proto = new RemoteExceptionProto();
+            proto.setStatus(status);
+            proto.setError(error);
+            proto.getExceptionTraces().addAll(traces);
+            proto.add(exceptionTrace);
+
+            super.setBody(proto);
         }
 
     }

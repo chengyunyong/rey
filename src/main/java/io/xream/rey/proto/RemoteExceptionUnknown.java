@@ -14,22 +14,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.api;
+package io.xream.rey.proto;
+
+import java.util.List;
 
 /**
  * @author Sim
  */
-public enum ReyHttpStatus {
-
-    BAD_REQUEST(400),
-    TO_CLIENT(222);
+public class RemoteExceptionUnknown {
 
     private int status;
-    public int getStatus(){
-        return this.status;
+    private String error;
+    private String path;
+    private List<RemoteExceptionProto.ExceptionTrace> exceptionTraces;
+
+    public int getStatus() {
+        return status;
     }
-    ReyHttpStatus(int status) {
+
+    public void setStatus(int status) {
         this.status = status;
     }
 
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public List<RemoteExceptionProto.ExceptionTrace> getExceptionTraces() {
+        return exceptionTraces;
+    }
+
+    public void setExceptionTraces(List<RemoteExceptionProto.ExceptionTrace> exceptionTraces) {
+        this.exceptionTraces = exceptionTraces;
+    }
 }

@@ -19,7 +19,7 @@ package io.xream.rey.internal;
 import io.xream.rey.api.BackendService;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.fallback.Fallback;
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.proto.ReyResponse;
 
 
 /**
@@ -27,6 +27,6 @@ import io.xream.rey.proto.ResponseString;
  */
 public interface ReyClient extends Fallback {
 
-    Object service(BackendDecoration backendDecoration, BackendService<ResponseString> backendService) throws ReyInternalException;
+    Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException;
 
 }

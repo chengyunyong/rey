@@ -24,7 +24,7 @@ import io.xream.rey.api.GroupRouter;
 import io.xream.rey.api.ReyTemplate;
 import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.exception.ReyInternalException;
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.proto.ReyResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -70,7 +70,7 @@ public class ClientBackendImpl implements ClientBackend {
 
 
     @Override
-    public ResponseString handle(R r, Class clz) {
+    public ReyResponse handle(R r, Class clz) {
 
         RequestMethod requestMethod = r.getRequestMethod();
         Object[] args = r.getArgs();
@@ -94,7 +94,7 @@ public class ClientBackendImpl implements ClientBackend {
             }
         }
 
-        ResponseString result = null;
+        ReyResponse result = null;
         if (requestMethod == RequestMethod.GET) {
             result = clientTemplate.exchange(clz,url,null,headers,requestMethod);
         } else {
@@ -129,20 +129,19 @@ public class ClientBackendImpl implements ClientBackend {
     }
 
     @Override
-    public Object service(BackendDecoration backendDecoration, BackendService<ResponseString> backendService) throws ReyInternalException {
+    public Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException {
 
         Object result = null;
         try {
-            if (backendDecoration == null || ! this.reyConfigurable.isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
+            if (backendDecoration == null
+                    || this.reyConfigurable == null
+                    || ! this.reyConfigurable.isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
                 try {
                     result = backendService.handle();
-                }catch (Exception e) {
-                    throw new ReyInternalException(e) {
-                        @Override
-                        public int httpStatus() {
-                            return 0;
-                        }
-                    };
+                }catch (Throwable e) {
+                    if (e instanceof ReyInternalException)
+                        throw (ReyInternalException) e;
+                    throw new ReyInternalException(e);
                 }
             } else {
                 result = reyTemplate.support(
@@ -153,17 +152,17 @@ public class ClientBackendImpl implements ClientBackend {
             }
         }catch (ReyInternalException e) {
             try {
-                this.clientExceptionHandler.resolver().handleException(e.getCause());
+                this.clientExceptionHandler.resolver().handleException(e);
             }catch (ReyInternalException rie) {
 
                 if (! this.clientExceptionHandler.resolver()
-                        .fallbackHandler().isNotRequireFallback(rie.getStatus())) {
+                        .fallbackHandler().isNotRequireFallback(rie.status())) {
                     try {
                         return backendService.fallback(rie);
                     }catch (Throwable t) {
                         if (t instanceof ReyInternalException)
                             throw rie;
-                        rie.setFallback(ReyExceptionUtil.getMessage(t));
+                        rie.setErrorOnFallback(ReyExceptionUtil.getMessage(t));
                         throw rie;
                     }
                 }
@@ -176,11 +175,13 @@ public class ClientBackendImpl implements ClientBackend {
 
         if (result == null)
             return null;
-        ResponseString responseString = (ResponseString) result;
-        final int status = responseString.getStatus();
-        final String body = responseString.getBody();
+        ReyResponse reyResponse = (ReyResponse) result;
+        final int status = reyResponse.getStatus();
+        final String body = reyResponse.getBody();
+        final String path = reyResponse.getUri();
 
-        this.clientExceptionHandler.resolver().convertNot200ToException(status,body);
+        //FIXME
+        this.clientExceptionHandler.resolver().convertNot200ToException(status,path,body);
 
         return result;
     }

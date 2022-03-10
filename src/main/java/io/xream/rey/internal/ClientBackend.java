@@ -16,7 +16,7 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.rey.proto.ResponseString;
+import io.xream.rey.proto.ReyResponse;
 
 /**
  * @author Sim
@@ -27,6 +27,6 @@ public interface ClientBackend extends ReyClient {
 
     Object toObject(Class<?> returnType, Class<?> geneType, String result);
 
-    ResponseString handle(R r, Class clz);
+    ReyResponse handle(R r, Class clz);
 
 }

@@ -20,12 +20,15 @@ import io.xream.rey.fallback.FallbacKey;
 import io.xream.rey.fallback.Fallback;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 
 /**
  * @author Sim
  */
+@Order(Ordered.LOWEST_PRECEDENCE - 99)
 public class FallbackInterceptor implements MethodInterceptor, Fallback {
     @Override
     public Object invoke(MethodInvocation methodInvocation) throws Throwable {

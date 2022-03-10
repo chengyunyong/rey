@@ -16,16 +16,11 @@
  */
 package io.xream.rey.spring.exceptionhandler;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.xream.internal.util.ExceptionUtil;
-import io.xream.rey.api.ReyHttpStatus;
-import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.RemoteExceptionProto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,27 +28,28 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.annotation.Resource;
 
-@Order(Ordered.LOWEST_PRECEDENCE - 101)
+/**
+ * annotation @CircuitBreaker on Controller
+ */
 @RestControllerAdvice
-public class ReyInternalExceptionHandler {
+public class CallNotPermittedExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReyInternalExceptionHandler.class);
     @Resource
     private Tracer tracer;
 
     @ExceptionHandler({
-            ReyInternalException.class
+            CallNotPermittedException.class
     })
     @ResponseBody
-    public ResponseEntity<RemoteExceptionProto> handleReyInternalException(ReyInternalException exception) {
+    public ResponseEntity<RemoteExceptionProto> handleCallNotPermittedException(CallNotPermittedException exception) {
 
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId() + ":" + span.context().toSpanId();
-        String stack = ExceptionUtil.getStack(exception);
-        RemoteExceptionProto proto = exception.getBody();
-        proto.last(traceId,stack);
-
-        return ResponseEntity.status(ReyHttpStatus.TO_CLIENT.getStatus()).body(proto);
+        String stack = "("+ exception.getClass().getName() + ") " +ExceptionUtil.getStack(exception);
+        RemoteExceptionProto proto = new RemoteExceptionProto(503, exception.getMessage(), stack, traceId);
+        return ResponseEntity.status(503).body(
+                proto
+        );
     }
 
 

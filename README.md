@@ -44,4 +44,31 @@
             # by this way, one set of services' TPS is 10000, deploy 10 sets, TPS become almost 100000
             service.demo=service-demo.prod#xxx#
             
+ ### CODING ERROR
+       1. annotation Fallback And CircuitBreaker on the same class:
+```java
+            @RestController
+            @RequestMapping("/soo")
+            @CircuitBreaker(name = "soo")
+            @Fallback(fallback = SooFallback2.class, ignoreExceptions = {
+                    IllegalArgumentException.class,
+                    ReyBizException.class
+                    })
+            public class SooController {
+```
+       2.  annotation Fallback on class, while CircuitBreaker on a method of the class:
+```java
+            @RestController
+            @RequestMapping("/soo")
+            @Fallback(fallback = SooFallback2.class, ignoreExceptions = {
+                    IllegalArgumentException.class,
+                    ReyBizException.class
+                    })
+            public class SooController {
             
+                @CircuitBreaker(name = "soo")
+                @RequestMapping("/aaa")
+                public String aaaaa() {
+                    return null;
+                }
+```

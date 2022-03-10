@@ -54,7 +54,7 @@
             service.demo=service-demo.prod#xxx#
             
  ### CODING ERROR
-       1. annotation Fallback And CircuitBreaker on the same class:
+       1. annotation Fallback And CircuitBreaker(resilience4j) on the same class:
 ```java
             @RestController
             @RequestMapping("/soo")
@@ -67,7 +67,7 @@
                 // ...
             }
 ```
-       2.  annotation Fallback on class, while CircuitBreaker on a method of the class:
+       2.  annotation Fallback on class, while CircuitBreaker(resilience4j) on a method of the class:
 ```java
             @RestController
             @RequestMapping("/soo")

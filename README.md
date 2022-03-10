@@ -22,7 +22,7 @@
        2. @ReyClient, call remote service, if get exception, will respond exception message with
            status 222, while actual status in message body
        3. If deploy many copies of a set of microservices, how to route to the service?
-            
+```java          
             public class FooRouter implements GroupRouter{
                  public String replaceHolder(){
                       return "#xxx#";
@@ -35,8 +35,17 @@
                       // all in docker, all in k8s, set/k8s namespace
                  }
             }
-            @ReyClient(value = "http://${service.demo}/xxx", groupRouter = FooRouter.class)
+```
+
+```java
+            import org.springframework.web.bind.annotation.RequestMapping;
             
+            @ReyClient(value = "http://${app.foo}/xxx", groupRouter = FooRouter.class)
+            public interface barRemote {
+                @RequestMapping("/test")
+                String test();
+            }      
+```        
             config:
             # when write/read db, sharding db can't support more TPS
             # we set the k8s namespace: prod_0, prod_1, prod_2 ....
@@ -55,6 +64,8 @@
                     ReyBizException.class
                     })
             public class SooController {
+                // ...
+            }
 ```
        2.  annotation Fallback on class, while CircuitBreaker on a method of the class:
 ```java
@@ -71,4 +82,5 @@
                 public String aaaaa() {
                     return null;
                 }
+            }
 ```

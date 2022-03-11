@@ -18,7 +18,7 @@ package io.xream.rey.spring.exceptionhandler;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.xream.rey.internal.ReyExceptionUtil;
+import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.proto.RemoteExceptionProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class IgnoreFallbackExceptionHandler {
     @ResponseBody
     public ResponseEntity<RemoteExceptionProto> handleIgnoreFallbackException(RuntimeException e) {
 
-        logger.error(ReyExceptionUtil.getMessage(e));
+        logger.error(io.xream.internal.util.ExceptionUtil.getMessage(e));
 
         if (e.getClass().getName().startsWith("org.springframework.http"))
             throw e;
@@ -54,7 +54,7 @@ public class IgnoreFallbackExceptionHandler {
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId() + ":" + span.context().toSpanId();
 
-        String stack = ReyExceptionUtil.getStack(e);
+        String stack = ExceptionUtil.getStack(e);
         int status = 400;
         String message = e.getMessage();
 

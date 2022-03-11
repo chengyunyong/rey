@@ -16,6 +16,7 @@
  */
 package io.xream.rey.internal;
 
+import io.xream.internal.util.ExceptionUtil;
 import io.xream.internal.util.JsonX;
 import io.xream.rey.api.CircuitbreakerExceptionHandler;
 import io.xream.rey.api.ClientExceptionResolver;
@@ -73,9 +74,9 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             String[] arr = str.split(";");
             final String message = arr[0];
             if (t instanceof ConnectException) {
-                throw ReyInternalException.create(-1 ,message, ReyExceptionUtil.getStack(e),null,uri);
+                throw ReyInternalException.create(-1 ,message, io.xream.internal.util.ExceptionUtil.getStack(e),null,uri);
             }else if (t instanceof SocketTimeoutException) {
-                throw ReyInternalException.create(-2 ,message,ReyExceptionUtil.getStack(e),null,uri);
+                throw ReyInternalException.create(-2 ,message, io.xream.internal.util.ExceptionUtil.getStack(e),null,uri);
             }
         }else if (e instanceof HttpClientErrorException){
             HttpClientErrorException ee = (HttpClientErrorException)e;
@@ -84,7 +85,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             RemoteExceptionUnknown unknown = JsonX.toObject(str,RemoteExceptionUnknown.class);
             List<RemoteExceptionProto.ExceptionTrace> traces = unknown.getExceptionTraces();
             if (traces == null) { //unknown
-                String stack = ReyExceptionUtil.getStack(e);
+                String stack = io.xream.internal.util.ExceptionUtil.getStack(e);
                 throw ReyInternalException.create(
                         ee.getStatusCode().value(),
                         unknown.getError(),
@@ -107,7 +108,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             List<RemoteExceptionProto.ExceptionTrace> traces = unknown.getExceptionTraces();
 
             if (traces == null) { //unknown
-                String stack = ReyExceptionUtil.getStack(e);
+                String stack = io.xream.internal.util.ExceptionUtil.getStack(e);
                 throw ReyInternalException.create(
                         ee.getStatusCode().value(),
                         unknown.getError(),
@@ -126,7 +127,7 @@ public class DefaultClientExceptionResolver implements ClientExceptionResolver {
             throw ReyInternalException.create(
                     400,
                     e.getMessage(),
-                    ReyExceptionUtil.getStack(e),
+                    ExceptionUtil.getStack(e),
                     null,
                     uri);
         }

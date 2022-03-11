@@ -70,16 +70,14 @@ public class ReyParser {
 
     public static void parse(FallbackParser.FallbackInstance fallbackInstance) {
 
-        /*
-         * fallback
-         */
-        FallbackParser.parse(fallbackInstance);
 
         for (Map.Entry<String,ReyParsed> entry : map.entrySet()) {
 
             ReyParsed parsed = entry.getValue();
             Class<?> clz = parsed.getObjectType();
             ReyClient reyClient = clz.getAnnotation(ReyClient.class);
+
+            FallbackParser.init(reyClient.ignoreExceptions(), clz, reyClient.fallback());
 
             /*
              * groupRouter
@@ -168,6 +166,10 @@ public class ReyParser {
             }
         }
 
+        /*
+         * fallback
+         */
+        FallbackParser.parse(fallbackInstance);
     }
 
 

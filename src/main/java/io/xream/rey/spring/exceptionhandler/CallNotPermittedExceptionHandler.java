@@ -19,7 +19,7 @@ package io.xream.rey.spring.exceptionhandler;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.xream.internal.util.ExceptionUtil;
+import io.xream.rey.internal.ReyExceptionUtil;
 import io.xream.rey.proto.RemoteExceptionProto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -45,7 +45,7 @@ public class CallNotPermittedExceptionHandler {
 
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId() + ":" + span.context().toSpanId();
-        String stack = "("+ exception.getClass().getName() + ") " +ExceptionUtil.getStack(exception);
+        String stack = "("+ exception.getClass().getName() + ") " + ReyExceptionUtil.getStack(exception);
         RemoteExceptionProto proto = new RemoteExceptionProto(503, exception.getMessage(), stack, traceId);
         return ResponseEntity.status(503).body(
                 proto

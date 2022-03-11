@@ -32,6 +32,7 @@ public class ClientBackendProxy implements FactoryBean {
     private BackendDecoration backendDecoration;
     private ClientBackend clientBackend;
 
+
     @Override
     public Object getObject() throws Exception {
         return Proxy.newProxyInstance(objectType.getClassLoader(), new Class[]{objectType},new ClientBackendInvocationHandler(this));

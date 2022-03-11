@@ -18,9 +18,9 @@ package io.xream.rey.spring.exceptionhandler;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.ReyHttpStatus;
 import io.xream.rey.exception.ReyInternalException;
+import io.xream.rey.internal.ReyExceptionUtil;
 import io.xream.rey.proto.RemoteExceptionProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class ReyInternalExceptionHandler {
 
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId() + ":" + span.context().toSpanId();
-        String stack = ExceptionUtil.getStack(exception);
+        String stack = ReyExceptionUtil.getStack(exception);
         RemoteExceptionProto proto = exception.getBody();
         proto.last(traceId,stack);
 

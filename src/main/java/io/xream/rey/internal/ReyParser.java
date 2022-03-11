@@ -48,10 +48,7 @@ public class ReyParser {
         return map.get(intfName);
     }
 
-    public static void parse(Class<?> clz,
-                             UrlConfigurable urlConfigurable,
-                             FallbackParser.FallbackInstance fallbackInstance) {
-
+    public static void init(Class<?> clz, UrlConfigurable urlConfigurable) {
         Annotation reyClientAnno = clz.getAnnotation(ReyClient.class);
         if (reyClientAnno == null)
             return;
@@ -69,96 +66,106 @@ public class ReyParser {
             logger.error("Parsing {}, found repeated class: {}", "ReyClient", clzName);
         }
         map.put(clzName, parsed);
+    }
+
+    public static void parse(FallbackParser.FallbackInstance fallbackInstance) {
 
         /*
          * fallback
          */
-        FallbackParser.parse(reyClient.ignoreExceptions(),clz,reyClient.fallback(),fallbackInstance);
+        FallbackParser.parse(fallbackInstance);
 
-        /*
-         * groupRouter
-         */
-        Class<? extends GroupRouter> groupRouterClz = reyClient.groupRouter();
-        if (groupRouterClz != GroupRouter.class) {
-            try {
-                parsed.setGroupRouter(groupRouterClz.newInstance());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        for (Map.Entry<String,ReyParsed> entry : map.entrySet()) {
 
-        Method[] arr = clz.getDeclaredMethods();
-        for (Method method : arr) {
+            ReyParsed parsed = entry.getValue();
+            Class<?> clz = parsed.getObjectType();
+            ReyClient reyClient = clz.getAnnotation(ReyClient.class);
 
-            String methodName = method.getName();
-            Class<?> returnType = method.getReturnType();
-
-            Annotation mappingAnno = method.getAnnotation(RequestMapping.class);
-            if (mappingAnno == null) {
-                logger.error(clz.getName() + "." + methodName + ", Not Found Annotation: " + RequestMapping.class.getName());
-                System.exit(0);
-            }
-
-            RequestMapping requestMapping = (RequestMapping) mappingAnno;
-            if (requestMapping.value() == null || requestMapping.value().length == 0) {
-                logger.error(clz.getName() + "." + methodName + " RequestMapping, no mapping value");
-                System.exit(0);
-            }
-
-            String mapping = requestMapping.value()[0];
-
-            RequestMethod rm = null;
-            RequestMethod[] rmArr = requestMapping.method();
-            if (rmArr == null || rmArr.length == 0) {
-                if (mapping != null && mapping.contains("{") && mapping.contains("}")) {
-                    rm = RequestMethod.GET;
-                } else {
-                    rm = RequestMethod.POST;
-                }
-
-            } else {
-                rm = rmArr[0];
-            }
-
-            MultiValueMap map = new LinkedMultiValueMap();
-            String[] headers = requestMapping.headers();
-            if (headers != null && headers.length > 0) {
-                for (String header : headers) {
-                    header = header.replace(":","=");
-                    int i = header.indexOf("=");
-                    String key = header.substring(0, i);
-                    String value = header.substring(i + 1);
-                    map.add(key.trim(),value.trim());
+            /*
+             * groupRouter
+             */
+            Class<? extends GroupRouter> groupRouterClz = reyClient.groupRouter();
+            if (groupRouterClz != GroupRouter.class) {
+                try {
+                    parsed.setGroupRouter(groupRouterClz.newInstance());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
-            if (returnType == Map.class) {
-                logger.info("ReyClient not support  genericReturnType of Map，while parsing " + method);
-                logger.error("ReyClient not support  genericReturnType of Map，while parsing " + method);
-                System.exit(0);
-            }
+            Method[] arr = clz.getDeclaredMethods();
+            for (Method method : arr) {
 
-            Class gtc = null;
-            if (returnType == List.class) {
-                Type gt = method.getGenericReturnType();
-                ParameterizedType pt = (ParameterizedType) gt;
-                Type t = pt.getActualTypeArguments()[0];
-                if (t instanceof ParameterizedType) {
-                    logger.error("ReyClient not support complex genericReturnType, like List<List<?>>, or" +
-                            "List<Map>，while parsing " + method);
+                String methodName = method.getName();
+                Class<?> returnType = method.getReturnType();
+
+                Annotation mappingAnno = method.getAnnotation(RequestMapping.class);
+                if (mappingAnno == null) {
+                    logger.error(clz.getName() + "." + methodName + ", Not Found Annotation: " + RequestMapping.class.getName());
                     System.exit(0);
                 }
-                gtc = (Class) t;
+
+                RequestMapping requestMapping = (RequestMapping) mappingAnno;
+                if (requestMapping.value() == null || requestMapping.value().length == 0) {
+                    logger.error(clz.getName() + "." + methodName + " RequestMapping, no mapping value");
+                    System.exit(0);
+                }
+
+                String mapping = requestMapping.value()[0];
+
+                RequestMethod rm = null;
+                RequestMethod[] rmArr = requestMapping.method();
+                if (rmArr == null || rmArr.length == 0) {
+                    if (mapping != null && mapping.contains("{") && mapping.contains("}")) {
+                        rm = RequestMethod.GET;
+                    } else {
+                        rm = RequestMethod.POST;
+                    }
+
+                } else {
+                    rm = rmArr[0];
+                }
+
+                MultiValueMap map = new LinkedMultiValueMap();
+                String[] headers = requestMapping.headers();
+                if (headers != null && headers.length > 0) {
+                    for (String header : headers) {
+                        header = header.replace(":", "=");
+                        int i = header.indexOf("=");
+                        String key = header.substring(0, i);
+                        String value = header.substring(i + 1);
+                        map.add(key.trim(), value.trim());
+                    }
+                }
+
+                if (returnType == Map.class) {
+                    logger.info("ReyClient not support  genericReturnType of Map，while parsing " + method);
+                    logger.error("ReyClient not support  genericReturnType of Map，while parsing " + method);
+                    System.exit(0);
+                }
+
+                Class gtc = null;
+                if (returnType == List.class) {
+                    Type gt = method.getGenericReturnType();
+                    ParameterizedType pt = (ParameterizedType) gt;
+                    Type t = pt.getActualTypeArguments()[0];
+                    if (t instanceof ParameterizedType) {
+                        logger.error("ReyClient not support complex genericReturnType, like List<List<?>>, or" +
+                                "List<Map>，while parsing " + method);
+                        System.exit(0);
+                    }
+                    gtc = (Class) t;
+                }
+
+                MethodParsed methodParsed = new MethodParsed();
+                methodParsed.setRequestMapping(mapping);
+                methodParsed.setReturnType(returnType);
+                methodParsed.setGeneType(gtc);
+                methodParsed.setRequestMethod(rm);
+                methodParsed.setHeaders(map);
+
+                parsed.getMap().put(methodName, methodParsed);
             }
-
-            MethodParsed methodParsed = new MethodParsed();
-            methodParsed.setRequestMapping(mapping);
-            methodParsed.setReturnType(returnType);
-            methodParsed.setGeneType(gtc);
-            methodParsed.setRequestMethod(rm);
-            methodParsed.setHeaders(map);
-
-            parsed.getMap().put(methodName, methodParsed);
         }
 
     }

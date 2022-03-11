@@ -70,7 +70,7 @@ public class ReyExceptionUtil {
                     || startWithIO(str)
                     || str.startsWith("com.sun");
             if (
-                    !notAppend
+                    !notAppend && !str.contains("BySpringCGLIB$$")
             ) {
                 msg += str;
                 msg += " ";

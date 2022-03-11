@@ -36,23 +36,35 @@ public class FallbackParser {
         return map.get(key);
     }
 
-    public static void parse(Class<? extends Throwable>[] ignoreExceptions,  Class<?> serviceClz, Class<?> fallbackClz,
-                             FallbackInstance fallbackInstance) {
 
-        if (fallbackClz != null && fallbackClz != void.class) {
+    public static void init(Class<? extends Throwable>[] ignoreExceptions,  Class<?> serviceClz, Class<?> fallbackClz){
+        {
 
-            Object fallback = fallbackInstance.get(fallbackClz);
-            Method[] arr = serviceClz.getDeclaredMethods();
-            Method[] fallbackMethodArr = fallbackClz.getMethods();
-            for (Method fm : fallbackMethodArr) {
-                for (Method reyMethod : arr) {
-                    if (reyMethod.getName().equals(fm.getName())) {
-                        map.put(FallbacKey.of(reyMethod),
-                                FallbackParsed.of(fm,fallback,ignoreExceptions,serviceClz)
-                        );
+            if (fallbackClz != null && fallbackClz != void.class) {
+
+                Method[] arr = serviceClz.getDeclaredMethods();
+                Method[] fallbackMethodArr = fallbackClz.getMethods();
+                for (Method fm : fallbackMethodArr) {
+                    for (Method reyMethod : arr) {
+                        if (reyMethod.getName().equals(fm.getName())) {
+                            map.put(FallbacKey.of(reyMethod),
+                                    FallbackParsed.of(fm,null,ignoreExceptions,serviceClz)
+                            );
+                        }
                     }
                 }
             }
+        }
+    }
+
+    public static void parse(FallbackInstance fallbackInstance) {
+
+        for (Map.Entry<FallbacKey, FallbackParsed> entry: map.entrySet()) {
+
+            FallbackParsed parsed = entry.getValue();
+            Class clzz = parsed.getMethod().getDeclaringClass();
+            Object fallback = fallbackInstance.get(clzz);
+            parsed.setFallback(fallback);
         }
     }
 

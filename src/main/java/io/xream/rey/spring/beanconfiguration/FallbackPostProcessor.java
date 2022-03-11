@@ -18,10 +18,13 @@ package io.xream.rey.spring.beanconfiguration;
 
 import io.xream.rey.fallback.FallbackParsed;
 import io.xream.rey.fallback.FallbackParser;
+import io.xream.rey.internal.ReyParser;
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 import java.lang.reflect.Method;
@@ -29,7 +32,7 @@ import java.lang.reflect.Method;
 /**
  * @author Sim
  */
-public class FallbackPostProcessor implements BeanPostProcessor {
+public class FallbackPostProcessor implements BeanPostProcessor, BeanFactoryAware {
 
     private Advice advice;
 
@@ -42,6 +45,8 @@ public class FallbackPostProcessor implements BeanPostProcessor {
 
         if (!bean.getClass().getName().contains("io.rey"))
             return bean;
+
+        ReyParser.parse(fallback -> beanFactory.getBean(fallback));
 
         for (FallbackParsed parsed : FallbackParser.all()) {
             if (parsed.getTargetClass() == bean.getClass()
@@ -71,5 +76,11 @@ public class FallbackPostProcessor implements BeanPostProcessor {
         }
 
         return bean;
+    }
+
+    private BeanFactory beanFactory;
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
     }
 }

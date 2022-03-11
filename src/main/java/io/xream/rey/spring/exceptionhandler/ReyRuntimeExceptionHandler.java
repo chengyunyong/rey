@@ -40,7 +40,8 @@ public class ReyRuntimeExceptionHandler {
 
     @ExceptionHandler({
             MismatchedReturnTypeException.class,
-            ReyRuntimeException.class
+            ReyRuntimeException.class,
+            RuntimeException.class
     })
     @ResponseBody
     public ResponseEntity<RemoteExceptionProto> handleReyRuntimeException(RuntimeException e){

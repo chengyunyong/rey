@@ -21,6 +21,8 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.proto.RemoteExceptionProto;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -31,6 +33,7 @@ import javax.annotation.Resource;
 /**
  * annotation @CircuitBreaker on Controller
  */
+@Order(Ordered.LOWEST_PRECEDENCE - 98)
 @RestControllerAdvice
 public class CallNotPermittedExceptionHandler {
 

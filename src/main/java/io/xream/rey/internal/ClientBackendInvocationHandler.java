@@ -37,7 +37,7 @@ public class ClientBackendInvocationHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method proxyMethod, Object[] proxyArgs) throws Throwable {
         if (proxyMethod.getName().equals("toString"))
-            return null;
+            return clientBackendProxy.toString();
 
         return getBackend().invoke(
                 clientBackendProxy.getObjectType(),

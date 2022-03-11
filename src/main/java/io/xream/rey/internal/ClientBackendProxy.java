@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 
 /**
  * @author Sim
@@ -32,6 +33,31 @@ public class ClientBackendProxy implements FactoryBean {
     private BackendDecoration backendDecoration;
     private ClientBackend clientBackend;
 
+    private String service;
+    private String url;
+    private Class<? extends Throwable>[] ignoreExceptions;
+    private Class fallback;
+    private String config;
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setIgnoreExceptions(Class<? extends Throwable>[] ignoreExceptions) {
+        this.ignoreExceptions = ignoreExceptions;
+    }
+
+    public void setFallback(Class fallback) {
+        this.fallback = fallback;
+    }
+
+    public void setConfig(String config) {
+        this.config = config;
+    }
 
     @Override
     public Object getObject() throws Exception {
@@ -70,4 +96,26 @@ public class ClientBackendProxy implements FactoryBean {
         this.clientBackend = clientBackend;
     }
 
+    @Override
+    public String toString() {
+        return  service +"{" +
+                "url=" + url +
+                ", fallback=" + fallback.getSimpleName() +
+                ", config=" + config  +
+                ", ignoreExceptions=" + exceptionsString() +
+                '}';
+    }
+
+    private String exceptionsString(){
+        if (this.ignoreExceptions == null)
+            return "[]";
+        int length = this.ignoreExceptions.length;
+        if (length == 0)
+            return "[]";
+        String[] arr = new String[length];
+        for (int i=0; i<length; i++) {
+            arr[i] = this.ignoreExceptions[i].getSimpleName();
+        }
+        return Arrays.toString(arr);
+    }
 }

@@ -22,6 +22,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -95,7 +96,11 @@ public class R {
         this.router = router;
     }
 
-    public static R build(String clzzName, String methodName, Object[] args) {
+    public static R build(Class proxyType, Method proxyMethod, Object[] args) {
+
+        String clzzName = proxyType.getName();
+        String methodName = proxyMethod.getName();
+
         ReyParsed parsed = ReyParser.get(clzzName);
         String url = parsed.getUrl();
 

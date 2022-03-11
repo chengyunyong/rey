@@ -16,13 +16,6 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.internal.util.LoggerProxy;
-import io.xream.rey.api.BackendService;
-import io.xream.rey.exception.MismatchedReturnTypeException;
-import io.xream.rey.exception.ReyInternalException;
-import io.xream.rey.fallback.FallbacKey;
-import io.xream.rey.proto.ReyResponse;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
@@ -33,75 +26,25 @@ public class ClientBackendInvocationHandler implements InvocationHandler {
 
     private ClientBackendProxy clientBackendProxy;
 
-    private ClientBackend getBackend(){
+    private ClientBackend getBackend() {
         return clientBackendProxy.getClientBackend();
     }
 
-    public ClientBackendInvocationHandler(ClientBackendProxy clientBackendProxy){
+    public ClientBackendInvocationHandler(ClientBackendProxy clientBackendProxy) {
         this.clientBackendProxy = clientBackendProxy;
     }
-    
+
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        final String methodName = method.getName();
-        if (methodName.equals("toString"))
+    public Object invoke(Object proxy, Method proxyMethod, Object[] proxyArgs) throws Throwable {
+        if (proxyMethod.getName().equals("toString"))
             return null;
 
-        Class clzz = clientBackendProxy.getObjectType();
-        long startTime = System.currentTimeMillis();
-        final String clzzName = clzz.getName();
-        try{
+        return getBackend().invoke(
+                clientBackendProxy.getObjectType(),
+                proxyMethod,
+                proxyArgs,
+                clientBackendProxy.getBackendDecoration(),
+                getBackend());
 
-            ClientBackend clientBackend = getBackend();
-
-            LoggerProxy.debug(clzz,methodName +"(..) start....");
-
-            R r = R.build(clzzName,methodName,args);
-
-            BackendDecoration backendDecoration = clientBackendProxy.getBackendDecoration();
-
-            if (backendDecoration.getConfigName() == null) {
-                ReyResponse result = getBackend().handle(r,clzz);
-                if (result == null)
-                    return null;
-                return clientBackend.toObject(r.getReturnType(),r.getGeneType(),result.getBody());
-            }
-
-            BackendDecoration cd = clientBackendProxy.getBackendDecoration();
-
-            Object result = clientBackend.service(cd, new BackendService<ReyResponse>() {
-                @Override
-                public ReyResponse handle() {
-                    return clientBackend.handle(r,clzz);
-                }
-
-                @Override
-                public Object fallback(Throwable e) throws Throwable{
-                    return clientBackend.fallback(FallbacKey.of(method),args,e);
-                }
-            });
-
-            if (result == null)
-                return null;
-
-            if (result instanceof ReyResponse) {
-                ReyResponse reyResponse = (ReyResponse) result;
-                return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
-            }else if (result.getClass() == r.getReturnType()){
-                return result;
-            }else {
-                throw new MismatchedReturnTypeException("FALLBACK AND GET MISMATCHED RESULT, " +
-                        "catch and invoke e.getTag() to handle",result);
-            }
-        } catch (RuntimeException rie){
-            Throwable throwable = rie.getCause();
-            if (throwable != null && throwable instanceof ReyInternalException) {
-                throw rie.getCause();
-            }
-            throw rie;
-        } finally{
-            long endTime = System.currentTimeMillis();
-            LoggerProxy.debug(clzz,methodName + "(..) end, cost time: " + (endTime - startTime) + "ms");
-        }
     }
 }

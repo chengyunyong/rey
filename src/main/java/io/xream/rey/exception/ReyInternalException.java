@@ -74,6 +74,7 @@ public class ReyInternalException extends RuntimeException {
 
     public static ReyInternalException createToClient(String path, RemoteExceptionProto proto) {
         ReyInternalException.ToClient exception = new ReyInternalException.ToClient();
+        exception.setBody(proto);
         exception.nextTraceToClient(path);
         return exception;
     }

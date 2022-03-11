@@ -136,13 +136,7 @@ public class ClientBackendImpl implements ClientBackend {
             if (backendDecoration == null
                     || this.reyConfigurable == null
                     || ! this.reyConfigurable.isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
-                try {
-                    result = backendService.handle();
-                }catch (Throwable e) {
-                    if (e instanceof ReyInternalException)
-                        throw (ReyInternalException) e;
-                    throw new ReyInternalException(e);
-                }
+                result = backendService.handle();
             } else {
                 result = reyTemplate.support(
                         backendDecoration.getServiceName(),
@@ -166,7 +160,6 @@ public class ClientBackendImpl implements ClientBackend {
                         throw rie;
                     }
                 }
-
                 throw rie;
             }
         }catch (Exception e) {

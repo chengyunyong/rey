@@ -16,7 +16,12 @@
  */
 package io.xream.rey.internal;
 
+import io.xream.rey.api.BackendService;
+import io.xream.rey.exception.MismatchedReturnTypeException;
+import io.xream.rey.fallback.FallbacKey;
 import io.xream.rey.proto.ReyResponse;
+
+import java.lang.reflect.Method;
 
 /**
  * @author Sim
@@ -29,4 +34,35 @@ public interface ClientBackend extends ReyClient {
 
     ReyResponse handle(R r, Class clz);
 
+    default Object invoke(
+            Class proxyType,
+            Method proxyMethod,
+            Object[] proxyArgs,
+            BackendDecoration bd, ClientBackend clientBackend) {
+        R r = R.build(proxyType, proxyMethod, proxyArgs);
+        Object result = service(bd, new BackendService<ReyResponse>() {
+            @Override
+            public ReyResponse handle() {
+                return clientBackend.handle(r, proxyType);
+            }
+
+            @Override
+            public Object fallback(Throwable e) throws Throwable {
+                return clientBackend.fallback(FallbacKey.of(proxyMethod), proxyArgs, e);
+            }
+        });
+
+        if (result == null)
+            return null;
+
+        if (result instanceof ReyResponse) {
+            ReyResponse reyResponse = (ReyResponse) result;
+            return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
+        } else if (result.getClass() == r.getReturnType()) {
+            return result;
+        } else {
+            throw new MismatchedReturnTypeException("FALLBACK AND GET MISMATCHED RESULT, " +
+                    "catch and invoke e.getTag() to handle", result);
+        }
+    }
 }

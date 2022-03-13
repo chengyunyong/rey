@@ -17,7 +17,7 @@
 package io.xream.rey.spring.beanconfiguration;
 
 import io.xream.rey.api.ClientHeaderInterceptor;
-import io.xream.rey.api.ClientTemplate;
+import io.xream.rey.api.ClientRestTemplate;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -33,8 +33,8 @@ public class ClientHeaderInterceptorPostProcessor implements BeanPostProcessor, 
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 
         if (bean instanceof ClientHeaderInterceptor) {
-            ClientTemplate clientTemplate = this.beanFactory.getBean(ClientTemplate.class);
-            clientTemplate.headerInterceptor((ClientHeaderInterceptor) bean);
+            ClientRestTemplate clientRestTemplate = this.beanFactory.getBean(ClientRestTemplate.class);
+            clientRestTemplate.headerInterceptor((ClientHeaderInterceptor) bean);
         }
 
         return bean;

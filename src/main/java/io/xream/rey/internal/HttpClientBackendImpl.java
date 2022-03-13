@@ -16,15 +16,13 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.internal.util.ExceptionUtil;
 import io.xream.internal.util.JsonX;
 import io.xream.internal.util.StringUtil;
-import io.xream.rey.api.BackendService;
-import io.xream.rey.api.ClientTemplate;
+import io.xream.rey.api.ClientExceptionProcessSupportable;
+import io.xream.rey.api.ClientRestTemplate;
 import io.xream.rey.api.GroupRouter;
 import io.xream.rey.api.ReyTemplate;
 import io.xream.rey.config.ReyConfigurable;
-import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.ReyResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -35,28 +33,28 @@ import java.util.regex.Pattern;
 /**
  * @author Sim
  */
-public class ClientBackendImpl implements ClientBackend {
+public class HttpClientBackendImpl implements ClientBackend {
 
 
-    private ClientExceptionHandler clientExceptionHandler;
+    private ClientExceptionProcessSupportable clientExceptionProcessSupportable;
 
     private ReyTemplate reyTemplate;
 
-    private ClientTemplate clientTemplate;
+    private ClientRestTemplate clientRestTemplate;
 
     private ReyConfigurable reyConfigurable;
 
-    public ClientBackendImpl(ClientTemplate wrapper) {
-        this.clientTemplate = wrapper;
+    public HttpClientBackendImpl(ClientRestTemplate wrapper) {
+        this.clientRestTemplate = wrapper;
     }
 
-    @Override
-    public void setClientExceptionHandler(ClientExceptionHandler clientExceptionHandler) {
-        this.clientExceptionHandler = clientExceptionHandler;
+
+    public void setClientExceptionProcessSupportable(ClientExceptionProcessSupportable clientExceptionProcessSupportable) {
+        this.clientExceptionProcessSupportable = clientExceptionProcessSupportable;
     }
 
-    public void setClientTemplate(ClientTemplate restTemplate) {
-        this.clientTemplate = restTemplate;
+    public void setClientRestTemplate(ClientRestTemplate restTemplate) {
+        this.clientRestTemplate = restTemplate;
     }
 
     public void setReyTemplate( ReyTemplate reyTemplate) {
@@ -69,6 +67,24 @@ public class ClientBackendImpl implements ClientBackend {
 
     private Pattern pattern = Pattern.compile("\\{[\\w]*\\}");
 
+    @Override
+    public ClientExceptionProcessSupportable clientExceptionHandler() {
+        return this.clientExceptionProcessSupportable;
+    }
+
+    @Override
+    public ReyTemplate reyTemplate() {
+        return this.reyTemplate;
+    }
+
+    public ClientRestTemplate clientTemplate() {
+        return this.clientRestTemplate;
+    }
+
+    @Override
+    public ReyConfigurable reyConfigurable() {
+        return this.reyConfigurable;
+    }
 
     @Override
     public ReyResponse handle(R r, Class clz) {
@@ -97,17 +113,18 @@ public class ClientBackendImpl implements ClientBackend {
 
         ReyResponse result = null;
         if (requestMethod == RequestMethod.GET) {
-            result = clientTemplate.exchange(clz,url,null,headers,requestMethod);
+            result = clientRestTemplate.exchange(clz,url,null,headers,requestMethod);
         } else {
             if (args != null && args.length > 0) {
-                result = clientTemplate.exchange(clz,url,args[0],headers,requestMethod);
+                result = clientRestTemplate.exchange(clz,url,args[0],headers,requestMethod);
             } else {
-                result = clientTemplate.exchange(clz,url,null,headers,requestMethod);
+                result = clientRestTemplate.exchange(clz,url,null,headers,requestMethod);
             }
         }
 
         return result;
     }
+
 
     @Override
     public Object toObject(Class<?> returnType, Class<?> geneType, String result) {
@@ -129,55 +146,5 @@ public class ClientBackendImpl implements ClientBackend {
         return JsonX.toObject(result, returnType);
     }
 
-    @Override
-    public Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException {
-
-        Object result = null;
-        try {
-            if (backendDecoration == null
-                    || this.reyConfigurable == null
-                    || ! this.reyConfigurable.isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
-                result = backendService.handle();
-            } else {
-                result = reyTemplate.support(
-                        backendDecoration.getServiceName(),
-                        backendDecoration.getConfigName(), backendDecoration.isRetry(),
-                        backendService
-                );
-            }
-        }catch (ReyInternalException e) {
-            try {
-                this.clientExceptionHandler.resolver().handleException(e);
-            }catch (ReyInternalException rie) {
-
-                if (! this.clientExceptionHandler.resolver()
-                        .fallbackHandler().isNotRequireFallback(rie.status())) {
-                    try {
-                        return backendService.fallback(rie);
-                    }catch (Throwable t) {
-                        if (t instanceof ReyInternalException)
-                            throw rie;
-                        rie.setErrorOnFallback(ExceptionUtil.getMessage(t));
-                        throw rie;
-                    }
-                }
-                throw rie;
-            }
-        }catch (Exception e) {
-            throw e;
-        }
-
-        if (result == null)
-            return null;
-        ReyResponse reyResponse = (ReyResponse) result;
-        final int status = reyResponse.getStatus();
-        final String body = reyResponse.getBody();
-        final String path = reyResponse.getUri();
-
-        //FIXME
-        this.clientExceptionHandler.resolver().convertNot200ToException(status,path,body);
-
-        return result;
-    }
 
 }

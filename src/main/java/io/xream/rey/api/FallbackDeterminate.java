@@ -19,6 +19,6 @@ package io.xream.rey.api;
 /**
  * @author Sim
  */
-public interface FallbackHandler {
+public interface FallbackDeterminate {
     boolean isNotRequireFallback(int status);
 }

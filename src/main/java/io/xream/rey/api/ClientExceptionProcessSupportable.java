@@ -14,22 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.internal;
-
-import io.xream.rey.api.ClientExceptionResolver;
+package io.xream.rey.api;
 
 /**
  * @author Sim
  */
-public final class ClientExceptionHandler {
+public interface ClientExceptionProcessSupportable {
 
-    private ClientExceptionResolver clientExceptionResolver;
+    RespondedExceptionConverter respondedExceptionConverter();
+    CallNotPermittedExceptionConverter callNotPermittedExceptionConverter();
+    FallbackDeterminate fallbackDeterminate();
 
-    public ClientExceptionResolver resolver() {
-        return clientExceptionResolver;
-    }
-
-    public void setClientExceptionResolver(ClientExceptionResolver clientExceptionResolver) {
-        this.clientExceptionResolver = clientExceptionResolver;
-    }
 }

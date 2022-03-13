@@ -16,12 +16,12 @@
  */
 package io.xream.rey.api.custom;
 
-import io.xream.rey.api.ClientTemplate;
+import io.xream.rey.api.ClientRestTemplate;
 
 /**
  * @author Sim
  */
 public interface RestTemplateCustomizer {
 
-    ClientTemplate customize();
+    ClientRestTemplate customize();
 }

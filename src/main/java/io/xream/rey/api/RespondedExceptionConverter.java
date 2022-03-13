@@ -21,12 +21,10 @@ import io.xream.rey.exception.ReyInternalException;
 /**
  * @author Sim
  */
-public interface ClientExceptionResolver {
+public interface RespondedExceptionConverter {
 
     void convertNot200ToException(int status, String uri, String response) throws ReyInternalException;
-    void handleException(ReyInternalException rie) throws ReyInternalException;
-    FallbackHandler fallbackHandler();
-    CircuitbreakerExceptionHandler circuitbreakerExceptionHandler();
+    void convertRespondedException(ReyInternalException rie) throws ReyInternalException;
 
     default String adaptJson(String str) {
         str = str.split(": ")[1].trim();

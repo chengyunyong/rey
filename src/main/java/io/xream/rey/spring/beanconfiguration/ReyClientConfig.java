@@ -16,11 +16,10 @@
  */
 package io.xream.rey.spring.beanconfiguration;
 
-import io.xream.rey.api.ClientTemplate;
+import io.xream.rey.api.ClientRestTemplate;
 import io.xream.rey.internal.ClientBackend;
-import io.xream.rey.internal.ClientBackendImpl;
-import io.xream.rey.internal.ClientExceptionHandler;
-import io.xream.rey.internal.DefaultClientTemplate;
+import io.xream.rey.internal.DefaultClientRestTemplate;
+import io.xream.rey.internal.HttpClientBackendImpl;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -29,14 +28,12 @@ import org.springframework.context.annotation.Bean;
 public class ReyClientConfig  {
 
     @Bean
-    public ClientTemplate clientTemplate() {
-        return new DefaultClientTemplate();
+    public ClientRestTemplate clientTemplate() {
+        return new DefaultClientRestTemplate();
     }
     @Bean
-    public ClientBackend clientBackend(ClientExceptionHandler clientExceptionHandler, ClientTemplate wrapper)  {
-
-        ClientBackendImpl clientBackend = new ClientBackendImpl(wrapper);
-        clientBackend.setClientExceptionHandler(clientExceptionHandler);
+    public ClientBackend clientBackend(ClientRestTemplate wrapper)  {
+        HttpClientBackendImpl clientBackend = new HttpClientBackendImpl(wrapper);
         return clientBackend;
     }
 

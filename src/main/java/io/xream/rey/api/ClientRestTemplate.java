@@ -14,14 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.api.custom;
+package io.xream.rey.api;
 
-import io.xream.rey.api.ClientExceptionResolver;
+import io.xream.rey.proto.ReyResponse;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * @author Sim
  */
-public interface ClientExceptionResolverCustomizer {
+public interface ClientRestTemplate {
 
-    ClientExceptionResolver customize();
+    void wrap(Object resetTemplate);
+    void headerInterceptor(ClientHeaderInterceptor interceptor);
+    ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod httpMethod);
 }

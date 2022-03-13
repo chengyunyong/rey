@@ -14,18 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.api;
+package io.xream.rey.internal;
 
-import io.xream.rey.proto.ReyResponse;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMethod;
+import io.xream.rey.api.FallbackDeterminate;
 
 /**
  * @author Sim
  */
-public interface ClientTemplate {
-
-    void wrap(Object impl);
-    void headerInterceptor(ClientHeaderInterceptor interceptor);
-    ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod httpMethod);
+public class DefaultFallbackDeterminate implements FallbackDeterminate {
+    @Override
+    public boolean isNotRequireFallback(int status) {
+        return status < 400;
+    }
 }

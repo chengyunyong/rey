@@ -16,7 +16,11 @@
  */
 package io.xream.rey.internal;
 
+import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.BackendService;
+import io.xream.rey.api.ClientExceptionProcessSupportable;
+import io.xream.rey.api.ReyTemplate;
+import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.fallback.Fallback;
 import io.xream.rey.proto.ReyResponse;
@@ -27,6 +31,62 @@ import io.xream.rey.proto.ReyResponse;
  */
 public interface ReyClient extends Fallback {
 
-    Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException;
+    ReyTemplate reyTemplate();
 
+    ReyConfigurable reyConfigurable();
+
+    ClientExceptionProcessSupportable clientExceptionHandler();
+
+//    Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException;
+
+    default Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException {
+
+        Object result = null;
+        try {
+            if (backendDecoration == null
+                    || this.reyConfigurable() == null
+                    || ! this.reyConfigurable().isCircuitbreakerEnabled(backendDecoration.getConfigName())) {
+                result = backendService.handle();
+            } else {
+                result = this.reyTemplate().support(
+                        backendDecoration.getServiceName(),
+                        backendDecoration.getConfigName(), backendDecoration.isRetry(),
+                        backendService
+                );
+            }
+        }catch (ReyInternalException e) {
+            try {
+                this.clientExceptionHandler().callNotPermittedExceptionConverter().convertIfCallNotPermitted(e);
+                this.clientExceptionHandler().respondedExceptionConverter().convertRespondedException(e);
+            }catch (ReyInternalException rie) {
+
+                if (! this.clientExceptionHandler()
+                        .fallbackDeterminate().isNotRequireFallback(rie.status())) {
+                    try {
+                        return backendService.fallback(rie);
+                    }catch (Throwable t) {
+                        if (t instanceof ReyInternalException)
+                            throw rie;
+                        rie.setErrorOnFallback(ExceptionUtil.getMessage(t));
+                        throw rie;
+                    }
+                }
+                throw rie;
+            }
+        }catch (Exception e) {
+            throw e;
+        }
+
+        if (result == null)
+            return null;
+        ReyResponse reyResponse = (ReyResponse) result;
+        final int status = reyResponse.getStatus();
+        final String body = reyResponse.getBody();
+        final String path = reyResponse.getUri();
+
+        //FIXME
+        this.clientExceptionHandler().respondedExceptionConverter().convertNot200ToException(status,path,body);
+
+        return result;
+    }
 }

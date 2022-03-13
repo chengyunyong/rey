@@ -21,7 +21,7 @@ import io.xream.rey.exception.ReyInternalException;
 /**
  * @author Sim
  */
-public interface CircuitbreakerExceptionHandler {
+public interface CallNotPermittedExceptionConverter {
 
-    void handle(ReyInternalException rie);
+    void convertIfCallNotPermitted(ReyInternalException rie) throws ReyInternalException;
 }

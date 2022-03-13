@@ -28,8 +28,6 @@ import java.lang.reflect.Method;
  */
 public interface ClientBackend extends ReyClient {
 
-    void setClientExceptionHandler(ClientExceptionHandler clientExceptionHandler);
-
     Object toObject(Class<?> returnType, Class<?> geneType, String result);
 
     ReyResponse handle(R r, Class clz);

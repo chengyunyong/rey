@@ -20,7 +20,7 @@ import io.xream.internal.util.JsonX;
 import io.xream.internal.util.LoggerProxy;
 import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.ClientHeaderInterceptor;
-import io.xream.rey.api.ClientTemplate;
+import io.xream.rey.api.ClientRestTemplate;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.ReyResponse;
 import org.springframework.http.*;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * @author Sim
  */
-public class DefaultClientTemplate implements ClientTemplate {
+public class DefaultClientRestTemplate implements ClientRestTemplate {
 
     private RestTemplate restTemplate;
 
@@ -43,8 +43,8 @@ public class DefaultClientTemplate implements ClientTemplate {
 
 
     @Override
-    public void wrap(Object impl) {
-        this.restTemplate = (RestTemplate) impl;
+    public void wrap(Object resetTemplate) {
+        this.restTemplate = (RestTemplate) resetTemplate;
     }
 
     @Override

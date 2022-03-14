@@ -18,31 +18,26 @@ package io.xream.rey.internal;
 
 import io.xream.internal.util.JsonX;
 import io.xream.internal.util.StringUtil;
-import io.xream.rey.api.ClientExceptionProcessSupportable;
 import io.xream.rey.api.ClientRestTemplate;
-import io.xream.rey.api.GroupRouter;
 import io.xream.rey.api.ReyTemplate;
+import io.xream.rey.api.exceptionhandler.ClientExceptionProcessSupportable;
 import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.proto.ReyResponse;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author Sim
  */
 public class HttpClientBackendImpl implements ClientBackend {
 
+    private ReyConfigurable reyConfigurable;
 
     private ClientExceptionProcessSupportable clientExceptionProcessSupportable;
 
     private ReyTemplate reyTemplate;
 
     private ClientRestTemplate clientRestTemplate;
-
-    private ReyConfigurable reyConfigurable;
 
     public HttpClientBackendImpl(ClientRestTemplate wrapper) {
         this.clientRestTemplate = wrapper;
@@ -65,7 +60,6 @@ public class HttpClientBackendImpl implements ClientBackend {
         this.reyConfigurable = reyConfigurable;
     }
 
-    private Pattern pattern = Pattern.compile("\\{[\\w]*\\}");
 
     @Override
     public ClientExceptionProcessSupportable clientExceptionHandler() {
@@ -77,52 +71,17 @@ public class HttpClientBackendImpl implements ClientBackend {
         return this.reyTemplate;
     }
 
-    public ClientRestTemplate clientTemplate() {
-        return this.clientRestTemplate;
-    }
-
     @Override
     public ReyConfigurable reyConfigurable() {
         return this.reyConfigurable;
     }
 
     @Override
-    public ReyResponse handle(R r, Class clz) {
-
-        RequestMethod requestMethod = r.getRequestMethod();
-        Object[] args = r.getArgs();
-        String url = r.getUrl();
-        MultiValueMap headers = r.getHeaders();
-
-        GroupRouter router = r.getRouter();
-        if (router != null){
-            Object arg = null;
-            if (args != null && args.length > 0) {
-                arg = args[0];
-            }
-            url = url.replace(router.replaceHolder(),router.replaceValue(arg));
-        }
-
-        if (url.contains("{")) {
-            List<String> regExList = StringUtil.listByRegEx(url, pattern);
-            int size = regExList.size();
-            for (int i = 0; i < size; i++) {
-                url = url.replace(regExList.get(i), args[i].toString());
-            }
-        }
-
-        ReyResponse result = null;
-        if (requestMethod == RequestMethod.GET) {
-            result = clientRestTemplate.exchange(clz,url,null,headers,requestMethod);
-        } else {
-            if (args != null && args.length > 0) {
-                result = clientRestTemplate.exchange(clz,url,args[0],headers,requestMethod);
-            } else {
-                result = clientRestTemplate.exchange(clz,url,null,headers,requestMethod);
-            }
-        }
-
-        return result;
+    public ReyResponse handle(R r) {
+        return this.clientRestTemplate.exchange(r.getUrl(),
+                r.getArg(),
+                r.getHeaders(),
+                r.getRequestMethod());
     }
 
 

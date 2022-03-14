@@ -30,7 +30,7 @@ public interface ClientBackend extends ReyClient {
 
     Object toObject(Class<?> returnType, Class<?> geneType, String result);
 
-    ReyResponse handle(R r, Class clz);
+    ReyResponse handle(R r);
 
     default Object invoke(
             Class proxyType,
@@ -38,10 +38,13 @@ public interface ClientBackend extends ReyClient {
             Object[] proxyArgs,
             BackendDecoration bd, ClientBackend clientBackend) {
         R r = R.build(proxyType, proxyMethod, proxyArgs);
+
+        ClientBackendLogger.log(proxyType, r.getUrl(),r.getArg(),r.getHeaders(),r.getRequestMethod());
+
         Object result = service(bd, new BackendService<ReyResponse>() {
             @Override
             public ReyResponse handle() {
-                return clientBackend.handle(r, proxyType);
+                return clientBackend.handle(r);
             }
 
             @Override
@@ -63,4 +66,5 @@ public interface ClientBackend extends ReyClient {
                     "catch and invoke e.getTag() to handle", result);
         }
     }
+
 }

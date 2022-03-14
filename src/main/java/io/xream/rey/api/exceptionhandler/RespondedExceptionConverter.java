@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.api;
+package io.xream.rey.api.exceptionhandler;
 
 import io.xream.rey.exception.ReyInternalException;
 
@@ -24,7 +24,7 @@ import io.xream.rey.exception.ReyInternalException;
 public interface RespondedExceptionConverter {
 
     void convertNot200ToException(int status, String uri, String response) throws ReyInternalException;
-    void convertRespondedException(ReyInternalException rie) throws ReyInternalException;
+    void convertRespondedException(Throwable e, String uri) throws ReyInternalException;
 
     default String adaptJson(String str) {
         str = str.split(": ")[1].trim();

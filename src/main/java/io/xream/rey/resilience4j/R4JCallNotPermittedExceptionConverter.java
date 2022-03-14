@@ -18,7 +18,7 @@ package io.xream.rey.resilience4j;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.xream.internal.util.ExceptionUtil;
-import io.xream.rey.api.CallNotPermittedExceptionConverter;
+import io.xream.rey.api.exceptionhandler.CallNotPermittedExceptionConverter;
 import io.xream.rey.exception.ReyInternalException;
 
 /**
@@ -26,10 +26,9 @@ import io.xream.rey.exception.ReyInternalException;
  */
 public class R4JCallNotPermittedExceptionConverter implements CallNotPermittedExceptionConverter {
 
-    public void convertIfCallNotPermitted(ReyInternalException rie) {
-        Throwable e = rie.getCause();
+    public void convertIfCallNotPermitted(Throwable e,String uri) {
         if (e instanceof CallNotPermittedException) {//503
-            throw ReyInternalException.create(503, e.getMessage(), ExceptionUtil.getStack(e), null, rie.getUri());
+            throw ReyInternalException.create(503, e.getMessage(), ExceptionUtil.getStack(e), null, uri);
         }
     }
 }

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.xream.rey.api;
+package io.xream.rey.api.exceptionhandler;
 
 import io.xream.rey.exception.ReyInternalException;
 
@@ -22,6 +22,5 @@ import io.xream.rey.exception.ReyInternalException;
  * @author Sim
  */
 public interface CallNotPermittedExceptionConverter {
-
-    void convertIfCallNotPermitted(ReyInternalException rie) throws ReyInternalException;
+    void convertIfCallNotPermitted(Throwable e,String uri) throws ReyInternalException;
 }

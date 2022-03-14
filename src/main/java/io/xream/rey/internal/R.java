@@ -16,17 +16,18 @@
  */
 package io.xream.rey.internal;
 
+import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.GroupRouter;
 import io.xream.rey.api.UrlParamed;
-import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * @author Sim
@@ -35,9 +36,9 @@ public class R {
     private String url;
     private Class<?> returnType;
     private Class<?> geneType;
-    private Object[] args;
+    private Object arg;
     private RequestMethod requestMethod;
-    private MultiValueMap headers;
+    private HttpHeaders headers;
     private GroupRouter router;
 
     public String getUrl() {
@@ -64,12 +65,12 @@ public class R {
         this.geneType = geneType;
     }
 
-    public Object[] getArgs() {
-        return args;
+    public Object getArg() {
+        return arg;
     }
 
-    public void setArgs(Object[] args) {
-        this.args = args;
+    public void setArg(Object arg) {
+        this.arg = arg;
     }
 
     public RequestMethod getRequestMethod() {
@@ -80,11 +81,11 @@ public class R {
         this.requestMethod = requestMethod;
     }
 
-    public MultiValueMap getHeaders() {
+    public HttpHeaders getHeaders() {
         return headers;
     }
 
-    public void setHeaders(MultiValueMap headers) {
+    public void setHeaders(HttpHeaders headers) {
         this.headers = headers;
     }
 
@@ -111,30 +112,28 @@ public class R {
         url = url + methodParsed.getRequestMapping();
 
         List<Object> objectList = new ArrayList<>();
-        MultiValueMap headers = new LinkedMultiValueMap();
+        HttpHeaders headers = new HttpHeaders();
         headers.addAll(methodParsed.getHeaders());
         if (args != null) {
             for (Object arg : args) {
                 if (arg != null && arg instanceof UrlParamed) {
                     UrlParamed urlParamed = (UrlParamed) arg;
                     url = urlParamed.value();
-                }else if (arg != null && arg instanceof MultiValueMap) {
-                    headers.addAll((MultiValueMap)arg);
+                } else if (arg != null && arg instanceof MultiValueMap) {
+                    headers.addAll((MultiValueMap) arg);
                 } else {
                     objectList.add(arg);
                 }
             }
         }
-        args = objectList.toArray();
 
-        if (!url.startsWith("http")) {
-            url = "http://" + url;
-        }
+        url = resolveUrl(url, parsed.getGroupRouter(), objectList);
+        args = objectList.toArray();
 
         RequestMethod requestMethod = methodParsed.getRequestMethod();
 
         R r = new R();
-        r.setArgs(args);
+        r.setArg( (args != null && args.length > 0) ? args[0] : null);
         r.setRequestMethod(requestMethod);
         r.setReturnType(methodParsed.getReturnType());
         r.setGeneType(methodParsed.getGeneType());
@@ -144,13 +143,41 @@ public class R {
         return r;
     }
 
+    private static Pattern pattern = Pattern.compile("\\{[\\w]*\\}");
+
+    private static String resolveUrl(String url, GroupRouter router, List<Object> argList) {
+
+        if (!url.startsWith("http")) {
+            url = "http://" + url;
+        }
+
+        if (router != null) {
+            Object arg = null;
+            if (argList != null && argList.size() > 0) {
+                arg = argList.get(0);
+                url = url.replace(router.replaceHolder(), router.replaceValue(arg));
+            }
+        }
+
+        if (url.contains("{")) {
+            List<String> regExList = StringUtil.listByRegEx(url, pattern);
+            int size = regExList.size();
+            for (int i = 0; i < size; i++) {
+                Object arg = argList.remove(0);
+                url = url.replace(regExList.get(i), arg.toString());
+            }
+        }
+
+        return url;
+    }
+
     @Override
     public String toString() {
         return "R{" +
                 "url='" + url + '\'' +
                 ", returnType=" + returnType +
                 ", geneType=" + geneType +
-                ", args=" + Arrays.toString(args) +
+                ", args=" + arg +
                 ", requestMethod=" + requestMethod +
                 ", headers=" + headers +
                 '}';

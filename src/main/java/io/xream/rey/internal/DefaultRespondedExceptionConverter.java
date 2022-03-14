@@ -2,8 +2,8 @@ package io.xream.rey.internal;
 
 import io.xream.internal.util.ExceptionUtil;
 import io.xream.internal.util.JsonX;
-import io.xream.rey.api.RespondedExceptionConverter;
 import io.xream.rey.api.ReyHttpStatus;
+import io.xream.rey.api.exceptionhandler.RespondedExceptionConverter;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.exception.ReyRuntimeException;
 import io.xream.rey.proto.RemoteExceptionProto;
@@ -30,11 +30,7 @@ public class DefaultRespondedExceptionConverter implements RespondedExceptionCon
     }
 
     @Override
-    public void convertRespondedException(ReyInternalException rie) throws ReyInternalException{
-
-        Throwable e= rie.getCause();
-
-        final String uri = rie.getUri();
+    public void convertRespondedException(Throwable e, String uri) throws ReyInternalException{
 
         if (e instanceof ResourceAccessException){
             ResourceAccessException rae = (ResourceAccessException)e;

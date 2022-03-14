@@ -17,8 +17,11 @@
 package io.xream.rey.api;
 
 import io.xream.rey.proto.ReyResponse;
-import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.List;
 
 /**
  * @author Sim
@@ -27,5 +30,23 @@ public interface ClientRestTemplate {
 
     void wrap(Object resetTemplate);
     void headerInterceptor(ClientHeaderInterceptor interceptor);
-    ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod httpMethod);
+    List<ClientHeaderInterceptor> clientHeaderInterceptors();
+    ReyResponse exchange(String url, Object request, HttpHeaders headers, RequestMethod httpMethod);
+
+    default void handleHeaders(HttpHeaders headers,RequestMethod requestMethod) {
+
+        for (ClientHeaderInterceptor headerInterceptor : clientHeaderInterceptors()) {
+            headerInterceptor.apply(headers);
+        }
+
+        if (headers.getContentType() == null
+                && (
+                requestMethod == RequestMethod.POST
+                        || requestMethod == RequestMethod.PUT
+                        || requestMethod == RequestMethod.DELETE
+                        || requestMethod == RequestMethod.PATCH
+        )) {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+        }
+    }
 }

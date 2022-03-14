@@ -16,10 +16,10 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.rey.api.CallNotPermittedExceptionConverter;
-import io.xream.rey.api.ClientExceptionProcessSupportable;
-import io.xream.rey.api.FallbackDeterminate;
-import io.xream.rey.api.RespondedExceptionConverter;
+import io.xream.rey.api.exceptionhandler.CallNotPermittedExceptionConverter;
+import io.xream.rey.api.exceptionhandler.ClientExceptionProcessSupportable;
+import io.xream.rey.api.exceptionhandler.FallbackDeterminate;
+import io.xream.rey.api.exceptionhandler.RespondedExceptionConverter;
 
 /**
  * @author Sim

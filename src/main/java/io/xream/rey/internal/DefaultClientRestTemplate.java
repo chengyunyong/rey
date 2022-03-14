@@ -17,20 +17,19 @@
 package io.xream.rey.internal;
 
 import io.xream.internal.util.JsonX;
-import io.xream.internal.util.LoggerProxy;
-import io.xream.internal.util.StringUtil;
 import io.xream.rey.api.ClientHeaderInterceptor;
 import io.xream.rey.api.ClientRestTemplate;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.proto.ReyResponse;
-import org.springframework.http.*;
-import org.springframework.util.MultiValueMap;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Sim
@@ -53,57 +52,35 @@ public class DefaultClientRestTemplate implements ClientRestTemplate {
     }
 
     @Override
-    public ReyResponse exchange(Class clz, String url, Object request, MultiValueMap headers, RequestMethod requestMethod) {
+    public List<ClientHeaderInterceptor> clientHeaderInterceptors() {
+        return this.clientHeaderInterceptorList;
+    }
+
+    @Override
+    public ReyResponse exchange(String url, Object request, HttpHeaders headers, RequestMethod requestMethod) {
+        handleHeaders(headers,requestMethod);
         ReyResponse result = null;
         switch (requestMethod) {
             case GET:
-                result = this.execute(clz, url, request, headers, HttpMethod.GET);
+                result = this.execute(url, request, headers, HttpMethod.GET);
                 break;
             case PUT:
-                result = this.execute(clz, url, request, headers, HttpMethod.PUT);
+                result = this.execute(url, request, headers, HttpMethod.PUT);
                 break;
             case DELETE:
-                result = this.execute(clz, url, request, headers, HttpMethod.DELETE);
+                result = this.execute(url, request, headers, HttpMethod.DELETE);
                 break;
             default:
-                result = this.execute(clz, url, request, headers, HttpMethod.POST);
+                result = this.execute(url, request, headers, HttpMethod.POST);
         }
 
         return result;
     }
 
 
-    private ReyResponse execute(Class clz, String url, Object request, MultiValueMap headerMap, HttpMethod method) {
-
-        HttpHeaders headers = new HttpHeaders();
-        if (headerMap != null) {
-            headers.addAll(headerMap);
-        }
-
-        for (ClientHeaderInterceptor headerInterceptor : clientHeaderInterceptorList) {
-            headerInterceptor.apply(headers);
-        }
-
-        // check content type
-        if (headers.getContentType() == null
-                && (
-                method == HttpMethod.POST
-                        || method == HttpMethod.PUT
-                        || method == HttpMethod.DELETE
-                        || method == HttpMethod.PATCH
-        )) {
-            headers.setContentType(MediaType.APPLICATION_JSON);
-        }
-
-        StringBuilder headerStr = new StringBuilder();
-
-        headers.entrySet().stream().forEach(
-                header -> headerStr.append(" -H ").append(header.getKey()).append(":").append(header.getValue().stream().collect(Collectors.joining()))
-        );
+    private ReyResponse execute(String url, Object request, HttpHeaders headers, HttpMethod method) {
 
         String json = request == null ? "" : JsonX.toJson(request);
-
-        LoggerProxy.info(clz, "-X " + method.name() + "  " + url + headerStr + (StringUtil.isNotNull(json) ? (" -d '" + json + "'") : ""));
 
         if (this.restTemplate == null)
             throw new NullPointerException(RestTemplate.class.getName());

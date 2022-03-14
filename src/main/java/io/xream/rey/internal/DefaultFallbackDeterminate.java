@@ -16,7 +16,7 @@
  */
 package io.xream.rey.internal;
 
-import io.xream.rey.api.FallbackDeterminate;
+import io.xream.rey.api.exceptionhandler.FallbackDeterminate;
 
 /**
  * @author Sim

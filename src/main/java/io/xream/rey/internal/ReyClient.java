@@ -18,8 +18,8 @@ package io.xream.rey.internal;
 
 import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.BackendService;
-import io.xream.rey.api.ClientExceptionProcessSupportable;
 import io.xream.rey.api.ReyTemplate;
+import io.xream.rey.api.exceptionhandler.ClientExceptionProcessSupportable;
 import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.fallback.Fallback;
@@ -37,7 +37,6 @@ public interface ReyClient extends Fallback {
 
     ClientExceptionProcessSupportable clientExceptionHandler();
 
-//    Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException;
 
     default Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException {
 
@@ -56,8 +55,10 @@ public interface ReyClient extends Fallback {
             }
         }catch (ReyInternalException e) {
             try {
-                this.clientExceptionHandler().callNotPermittedExceptionConverter().convertIfCallNotPermitted(e);
-                this.clientExceptionHandler().respondedExceptionConverter().convertRespondedException(e);
+                Throwable t = e.getCause();
+                String uri = e.getUri();
+                this.clientExceptionHandler().callNotPermittedExceptionConverter().convertIfCallNotPermitted(t,uri);
+                this.clientExceptionHandler().respondedExceptionConverter().convertRespondedException(t,uri);
             }catch (ReyInternalException rie) {
 
                 if (! this.clientExceptionHandler()

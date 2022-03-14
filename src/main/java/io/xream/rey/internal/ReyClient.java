@@ -31,10 +31,8 @@ import io.xream.rey.proto.ReyResponse;
  */
 public interface ReyClient extends Fallback {
 
-    ReyTemplate reyTemplate();
-
     ReyConfigurable reyConfigurable();
-
+    ReyTemplate reyTemplate();
     ClientExceptionProcessSupportable clientExceptionHandler();
 
 

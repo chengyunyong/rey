@@ -19,7 +19,9 @@ package io.xream.rey.internal;
 import io.xream.internal.util.ExceptionUtil;
 import io.xream.rey.api.BackendService;
 import io.xream.rey.api.ReyTemplate;
+import io.xream.rey.api.exceptionhandler.CallNotPermittedExceptionConverter;
 import io.xream.rey.api.exceptionhandler.ClientExceptionProcessSupportable;
+import io.xream.rey.api.exceptionhandler.RespondedExceptionConverter;
 import io.xream.rey.config.ReyConfigurable;
 import io.xream.rey.exception.ReyInternalException;
 import io.xream.rey.fallback.Fallback;
@@ -55,8 +57,16 @@ public interface ReyClient extends Fallback {
             try {
                 Throwable t = e.getCause();
                 String uri = e.getUri();
-                this.clientExceptionProcessSupportable().callNotPermittedExceptionConverter().convertIfCallNotPermitted(t,uri);
-                this.clientExceptionProcessSupportable().respondedExceptionConverter().convertRespondedException(t,uri);
+                CallNotPermittedExceptionConverter callNotPermittedExceptionConverter = this.clientExceptionProcessSupportable().callNotPermittedExceptionConverter();
+                if (callNotPermittedExceptionConverter != null) {
+                    callNotPermittedExceptionConverter.convertIfCallNotPermitted(t,uri);
+                }
+                RespondedExceptionConverter respondedExceptionConverter = this.clientExceptionProcessSupportable().respondedExceptionConverter();
+                if (respondedExceptionConverter == null) {
+                    throw e;
+                }else {
+                    respondedExceptionConverter.convertRespondedException(t,uri);
+                }
             }catch (ReyInternalException rie) {
 
                 if (! this.clientExceptionProcessSupportable()
@@ -83,8 +93,10 @@ public interface ReyClient extends Fallback {
         final String body = reyResponse.getBody();
         final String path = reyResponse.getUri();
 
-        //FIXME
-        this.clientExceptionProcessSupportable().respondedExceptionConverter().convertNot200ToException(status,path,body);
+        RespondedExceptionConverter respondedExceptionConverter = this.clientExceptionProcessSupportable().respondedExceptionConverter();
+        if (respondedExceptionConverter != null) {
+            respondedExceptionConverter.convertNot200ToException(status,path,body);
+        }
 
         return result;
     }

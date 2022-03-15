@@ -117,6 +117,7 @@ public class ReyInternalException extends RuntimeException {
             super();
             RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
             exceptionTrace.setStack(stack);
+            exceptionTrace.setUri(path)
 
             RemoteExceptionProto proto = new RemoteExceptionProto();
             proto.setStatus(400);

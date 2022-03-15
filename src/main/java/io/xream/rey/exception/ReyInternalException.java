@@ -32,7 +32,7 @@ public class ReyInternalException extends RuntimeException {
 
 
     public int status(){
-        return this.body.getStatus();
+        return this.body == null ? 0 : this.body.getStatus();
     }
 
     public void add(RemoteExceptionProto.ExceptionTrace exceptionTrace) {

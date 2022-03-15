@@ -26,13 +26,22 @@ import java.util.List;
  */
 public class ReyInternalException extends RuntimeException {
 
+    private int status;
     private String uri;
 
     private RemoteExceptionProto body;
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public int status(){
-        return this.body == null ? 0 : this.body.getStatus();
+        int s = this.body == null ? this.status : this.body.getStatus();
+        return s == 0 ? 500 : s;
     }
 
     public void add(RemoteExceptionProto.ExceptionTrace exceptionTrace) {
@@ -101,6 +110,9 @@ public class ReyInternalException extends RuntimeException {
     }
 
     public void setErrorOnFallback(String message) {
+        if (body == null) {
+            this.body = new RemoteExceptionProto();
+        }
         this.body.setErrorOnFallback(message);
     }
 
@@ -115,6 +127,7 @@ public class ReyInternalException extends RuntimeException {
 
         private BadRequest(String error,String stack,String fallback,String path) {
             super();
+            super.setStatus(400);
             RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
             exceptionTrace.setStack(stack);
             exceptionTrace.setUri(path);
@@ -130,7 +143,7 @@ public class ReyInternalException extends RuntimeException {
 
         public BadRequest(String error, String path, List<RemoteExceptionProto.ExceptionTrace> traces) {
             super();
-
+            super.setStatus(400);
             RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
             exceptionTrace.setUri(path);
 
@@ -151,6 +164,7 @@ public class ReyInternalException extends RuntimeException {
 
         private ToClient(int status, String error,String stack, String fallback,String path) {
             super();
+            super.setStatus(status);
             RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
             exceptionTrace.setStack(stack);
             exceptionTrace.setUri(path);
@@ -166,7 +180,7 @@ public class ReyInternalException extends RuntimeException {
 
         public ToClient(int status, String error, String path, List<RemoteExceptionProto.ExceptionTrace> traces) {
             super();
-
+            super.setStatus(status);
             RemoteExceptionProto.ExceptionTrace exceptionTrace = new RemoteExceptionProto.ExceptionTrace();
             exceptionTrace.setUri(path);
 

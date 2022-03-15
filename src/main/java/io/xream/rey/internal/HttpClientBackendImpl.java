@@ -62,7 +62,7 @@ public class HttpClientBackendImpl implements ClientBackend {
 
 
     @Override
-    public ClientExceptionProcessSupportable clientExceptionHandler() {
+    public ClientExceptionProcessSupportable clientExceptionProcessSupportable() {
         return this.clientExceptionProcessSupportable;
     }
 

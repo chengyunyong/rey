@@ -33,7 +33,7 @@ public interface ReyClient extends Fallback {
 
     ReyConfigurable reyConfigurable();
     ReyTemplate reyTemplate();
-    ClientExceptionProcessSupportable clientExceptionHandler();
+    ClientExceptionProcessSupportable clientExceptionProcessSupportable();
 
 
     default Object service(BackendDecoration backendDecoration, BackendService<ReyResponse> backendService) throws ReyInternalException {
@@ -55,11 +55,11 @@ public interface ReyClient extends Fallback {
             try {
                 Throwable t = e.getCause();
                 String uri = e.getUri();
-                this.clientExceptionHandler().callNotPermittedExceptionConverter().convertIfCallNotPermitted(t,uri);
-                this.clientExceptionHandler().respondedExceptionConverter().convertRespondedException(t,uri);
+                this.clientExceptionProcessSupportable().callNotPermittedExceptionConverter().convertIfCallNotPermitted(t,uri);
+                this.clientExceptionProcessSupportable().respondedExceptionConverter().convertRespondedException(t,uri);
             }catch (ReyInternalException rie) {
 
-                if (! this.clientExceptionHandler()
+                if (! this.clientExceptionProcessSupportable()
                         .fallbackDeterminate().isNotRequireFallback(rie.status())) {
                     try {
                         return backendService.fallback(rie);
@@ -84,7 +84,7 @@ public interface ReyClient extends Fallback {
         final String path = reyResponse.getUri();
 
         //FIXME
-        this.clientExceptionHandler().respondedExceptionConverter().convertNot200ToException(status,path,body);
+        this.clientExceptionProcessSupportable().respondedExceptionConverter().convertNot200ToException(status,path,body);
 
         return result;
     }

@@ -33,6 +33,16 @@ public class ClientBackendLogger {
 
         StringBuilder headerStr = new StringBuilder();
 
+        if (headers.getContentType() == null
+            && (
+                    requestMethod == RequestMethod.POST
+                || requestMethod == RequestMethod.PUT
+                || requestMethod == RequestMethod.PATCH
+                )
+        ) {
+            headerStr.append(" -H Content-Type:application/json");
+        }
+
         headers.entrySet().stream().forEach(
                 header -> headerStr.append(" -H ").append(header.getKey()).append(":").append(header.getValue().stream().collect(Collectors.joining()))
         );

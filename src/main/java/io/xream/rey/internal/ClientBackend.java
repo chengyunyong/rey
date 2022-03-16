@@ -58,6 +58,8 @@ public interface ClientBackend extends ReyClient {
 
         if (result instanceof ReyResponse) {
             ReyResponse reyResponse = (ReyResponse) result;
+            if (reyResponse.getStatus() == 204)
+                return null;
             return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
         } else if (result.getClass() == r.getReturnType()) {
             return result;

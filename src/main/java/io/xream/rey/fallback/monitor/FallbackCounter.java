@@ -38,6 +38,8 @@ public class FallbackCounter {
                                  String methodName,
                                  String uri,
                                  String exceptionName) {
+        if (registry == null)
+            return;
         String key = className + methodName;
         Counter counter = counterMap.get(key);
         if (counter == null) {
@@ -50,11 +52,9 @@ public class FallbackCounter {
                     .tag("exception",exceptionName)
                     .description("Rey fallback count base on seconds")
                     .register(registry);
-            counter.increment();
             counterMap.put(key,counter);
-        }else {
-            counter.increment();
         }
+        counter.increment();
     }
 
 }

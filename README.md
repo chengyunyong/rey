@@ -8,9 +8,10 @@
 ### GLIMPSE 
 
        rey
-             @EnableReySupport          and { private ReyTemplate reyTemplate }
              @EnableReyClient           @ReyClient
              @EnableFallback            @Fallback
+             
+             @Resource private ReyTemplate reyTemplate;
         
        rey-spring-boot-starter
        

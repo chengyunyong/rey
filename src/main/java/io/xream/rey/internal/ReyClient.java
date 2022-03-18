@@ -57,6 +57,9 @@ public interface ReyClient extends Fallback {
             try {
                 Throwable t = e.getCause();
                 String uri = e.getUri();
+                if (this.clientExceptionProcessSupportable() == null) {
+                    throw e;
+                }
                 CallNotPermittedExceptionConverter callNotPermittedExceptionConverter = this.clientExceptionProcessSupportable().callNotPermittedExceptionConverter();
                 if (callNotPermittedExceptionConverter != null) {
                     callNotPermittedExceptionConverter.convertIfCallNotPermitted(t,uri);
@@ -69,7 +72,7 @@ public interface ReyClient extends Fallback {
                 }
             }catch (ReyInternalException rie) {
 
-                if (! this.clientExceptionProcessSupportable()
+                if (this.clientExceptionProcessSupportable()!=null && ! this.clientExceptionProcessSupportable()
                         .fallbackDeterminate().isNotRequireFallback(rie.status())) {
                     try {
                         return backendService.fallback(rie);

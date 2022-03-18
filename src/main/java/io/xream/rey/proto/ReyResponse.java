@@ -48,4 +48,13 @@ public class ReyResponse {
     public void setUri(String uri) {
         this.uri = uri;
     }
+
+    @Override
+    public String toString() {
+        return "ReyResponse{" +
+                "status=" + status +
+                ", body='" + body + '\'' +
+                ", uri='" + uri + '\'' +
+                '}';
+    }
 }

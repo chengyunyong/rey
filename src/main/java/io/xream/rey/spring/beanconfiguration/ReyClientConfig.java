@@ -17,6 +17,8 @@
 package io.xream.rey.spring.beanconfiguration;
 
 import io.xream.rey.api.ClientRestTemplate;
+import io.xream.rey.internal.ClientBackend;
+import io.xream.rey.internal.ClientBackendImpl;
 import io.xream.rey.internal.DefaultClientRestTemplate;
 import org.springframework.context.annotation.Bean;
 
@@ -30,4 +32,9 @@ public class ReyClientConfig  {
         return new DefaultClientRestTemplate();
     }
 
+    @Bean
+    public ClientBackend clientBackend(ClientRestTemplate wrapper)  {
+        ClientBackendImpl clientBackend = new ClientBackendImpl(wrapper);
+        return clientBackend;
+    }
 }

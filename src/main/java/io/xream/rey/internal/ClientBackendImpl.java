@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * @author Sim
  */
-public class HttpClientBackendImpl implements ClientBackend {
+public class ClientBackendImpl implements ClientBackend {
 
     private ReyConfigurable reyConfigurable;
 
@@ -39,7 +39,7 @@ public class HttpClientBackendImpl implements ClientBackend {
 
     private ClientRestTemplate clientRestTemplate;
 
-    public HttpClientBackendImpl(ClientRestTemplate wrapper) {
+    public ClientBackendImpl(ClientRestTemplate wrapper) {
         this.clientRestTemplate = wrapper;
     }
 

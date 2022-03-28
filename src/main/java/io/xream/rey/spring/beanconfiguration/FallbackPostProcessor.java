@@ -18,7 +18,6 @@ package io.xream.rey.spring.beanconfiguration;
 
 import io.xream.rey.fallback.FallbackParsed;
 import io.xream.rey.fallback.FallbackParser;
-import io.xream.rey.internal.ReyParser;
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
@@ -43,10 +42,10 @@ public class FallbackPostProcessor implements BeanPostProcessor, BeanFactoryAwar
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 
-        if (!bean.getClass().getName().contains("io.rey"))
-            return bean;
-
-        ReyParser.parse(fallback -> beanFactory.getBean(fallback));
+        /*
+         * fallback
+         */
+        FallbackParser.parse(fallback -> beanFactory.getBean(fallback));
 
         for (FallbackParsed parsed : FallbackParser.all()) {
             if (parsed.getTargetClass() == bean.getClass()

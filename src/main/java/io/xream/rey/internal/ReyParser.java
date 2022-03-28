@@ -66,9 +66,11 @@ public class ReyParser {
             logger.error("Parsing {}, found repeated class: {}", "ReyClient", clzName);
         }
         map.put(clzName, parsed);
+
+        parse();
     }
 
-    public static void parse(FallbackParser.FallbackInstance fallbackInstance) {
+    public static void parse() {
 
 
         for (Map.Entry<String,ReyParsed> entry : map.entrySet()) {
@@ -166,10 +168,6 @@ public class ReyParser {
             }
         }
 
-        /*
-         * fallback
-         */
-        FallbackParser.parse(fallbackInstance);
     }
 
 

@@ -19,12 +19,11 @@ package io.xream.rey.spring.exceptionhandler;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.xream.internal.util.ExceptionUtil;
-import io.xream.rey.exception.MismatchedReturnTypeException;
-import io.xream.rey.exception.ReyRuntimeException;
 import io.xream.rey.proto.RemoteExceptionProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -32,42 +31,29 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import javax.annotation.Resource;
 
 @RestControllerAdvice
-public class ReyRuntimeExceptionHandler {
+public class Spring400ExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReyRuntimeExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(Spring400ExceptionHandler.class);
     @Resource
     private Tracer tracer;
 
     @ExceptionHandler({
-            MismatchedReturnTypeException.class,
-            ReyRuntimeException.class,
-            RuntimeException.class
+            HttpMessageNotReadableException.class,
     })
     @ResponseBody
     public ResponseEntity<RemoteExceptionProto> handleReyRuntimeException(RuntimeException e){
 
         logger.error(ExceptionUtil.getMessage(e));
 
-        if (e.getClass().getName().startsWith("org.springframework.http"))
-            throw e;
-
         Span span = tracer.scopeManager().activeSpan();
         String traceId = span == null ? "" : span.context().toTraceId()+ ":" + span.context().toSpanId();
 
         String stack = "("+e.getClass().getName() + ") " + ExceptionUtil.getStack(e);
-        int status = 500;
-        String message = null;
+        String message = e.getMessage();
 
-        if (e instanceof MismatchedReturnTypeException){
-            message = e.getMessage();
-        }else if (e instanceof ReyRuntimeException){
-            message = e.getMessage();
-        } else {
-            message = e.getMessage();
-        }
-        RemoteExceptionProto proto = new RemoteExceptionProto(status,message,stack,traceId);
+        RemoteExceptionProto proto = new RemoteExceptionProto(400,message,stack,traceId);
 
-        return ResponseEntity.status(status == 400 ? 400 : 500).body(proto);
+        return ResponseEntity.status(400).body(proto);
     }
 
 

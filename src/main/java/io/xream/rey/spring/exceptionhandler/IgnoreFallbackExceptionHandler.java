@@ -49,7 +49,7 @@ public class IgnoreFallbackExceptionHandler {
     @ResponseBody
     public ResponseEntity<RemoteExceptionProto> handleIgnoreFallbackException(RuntimeException e) {
 
-        logger.error(io.xream.internal.util.ExceptionUtil.getMessage(e));
+        logger.error(ExceptionUtil.getMessage(e));
 
         if (e.getClass().getName().startsWith("org.springframework.http"))
             throw e;

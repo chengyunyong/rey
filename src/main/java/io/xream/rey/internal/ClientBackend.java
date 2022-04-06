@@ -39,7 +39,7 @@ public interface ClientBackend extends ReyClient {
             BackendDecoration bd, ClientBackend clientBackend) {
         R r = R.build(proxyType, proxyMethod, proxyArgs);
 
-        ClientBackendLogger.log(proxyType, r.getUrl(),r.getArg(),r.getHeaders(),r.getRequestMethod());
+        ClientBackendLogger.log(proxyType, r.getUrl(), r.getArg(), r.getHeaders(), r.getRequestMethod());
 
         Object result = service(bd, new BackendService<ReyResponse>() {
             @Override
@@ -60,7 +60,12 @@ public interface ClientBackend extends ReyClient {
             ReyResponse reyResponse = (ReyResponse) result;
             if (reyResponse.getStatus() == 204)
                 return null;
-            return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
+            try {
+                return clientBackend.toObject(r.getReturnType(), r.getGeneType(), reyResponse.getBody());
+            } catch (Exception e) {
+                throw new MismatchedReturnTypeException("type: " +
+                        r.getReturnType() + ", result: " + reyResponse.getBody() + ", url:" + r.getUrl());
+            }
         } else if (result.getClass() == r.getReturnType()) {
             return result;
         } else {

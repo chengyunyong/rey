@@ -82,7 +82,7 @@ public class ReyInternalException extends RuntimeException {
     }
 
     public static ReyInternalException createToClient(String path, RemoteExceptionProto proto) {
-        ReyInternalException.ToClient exception = new ReyInternalException.ToClient();
+        ToClient exception = new ToClient();
         exception.setBody(proto);
         exception.nextTraceToClient(path);
         return exception;
@@ -160,7 +160,9 @@ public class ReyInternalException extends RuntimeException {
 
     public static final class ToClient extends ReyInternalException {
 
-        private ToClient() {}
+        private ToClient() {
+            super();
+        }
 
         private ToClient(int status, String error,String stack, String fallback,String path) {
             super();

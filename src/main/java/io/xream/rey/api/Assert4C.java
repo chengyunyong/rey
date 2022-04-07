@@ -21,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,6 +35,30 @@ import java.util.function.Supplier;
 public class Assert4C  {
 
     private Assert4C(){}
+
+    public static long parseLong(String obj, String message) {
+        try {
+            return Long.valueOf(obj);
+        }catch (Exception e) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static int parseInt(String obj, String message) {
+        try {
+            return Integer.valueOf(obj);
+        }catch (Exception e) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static BigDecimal parseBigDecimal(String obj, String message) {
+        try {
+            return new BigDecimal(obj);
+        }catch (Exception e) {
+            throw new IllegalArgumentException(message);
+        }
+    }
 
     public static void state(boolean expression, String message) {
         if (!expression) {

@@ -27,8 +27,8 @@ import io.xream.rey.exception.ReyInternalException;
 public class R4JCallNotPermittedExceptionConverter implements CallNotPermittedExceptionConverter {
 
     public void convertIfCallNotPermitted(Throwable e,String uri) {
-        if (e instanceof CallNotPermittedException) {//503
-            throw ReyInternalException.create(503, e.getMessage(), ExceptionUtil.getStack(e), null, uri);
+        if (e instanceof CallNotPermittedException) {//429
+            throw ReyInternalException.create(429, e.getMessage(), ExceptionUtil.getStack(e), null, uri);
         }
     }
 }

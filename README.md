@@ -16,7 +16,14 @@
        rey-spring-boot-starter
        
        rey-seata-spring-boot-starter
-    
+
+```xml        
+    <dependency>
+         <groupId>io.xream.rey</groupId>
+         <artifactId>rey-spring-boot-starter</artifactId>
+         ....
+    </dependency>
+```         
        
 ### NOTES   
        1. @Fallback not dependent on remote call, can add fallback on any class
